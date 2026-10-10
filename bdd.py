@@ -27,6 +27,11 @@ logger = logging.getLogger("bataille.bdd")
 # Un joueur sans heartbeat depuis 2 min est considéré hors-ligne
 STALE_MINUTES = 2
 
+# Fenêtre de fraîcheur pour qu'une file soit rejoignable par le matchmaking.
+# Courte (30 s) : un joueur qui a fermé son onglet cesse de pulser vite,
+# même si son flag 'online' n'a pas encore été purgé par sweep_stale_players.
+FRESH_SECONDS = 30
+
 _pool_lock = threading.Lock()
 _pool: psycopg2.pool.ThreadedConnectionPool | None = None
 
@@ -172,6 +177,32 @@ def logout(pseudo: str) -> None:
         )
 
 
+def sweep_stale_players(minutes: int = 5) -> None:
+    """Purge les joueurs fantômes (onglet fermé sans déconnexion).
+
+    Appelée au démarrage et au login : hors-ligne si plus de heartbeat
+    depuis `minutes`, et suppression de leurs files d'attente.
+    """
+    with get_conn() as c, c.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE players SET online = FALSE
+            WHERE online AND last_seen < now() - make_interval(mins => %s);
+            """,
+            (minutes,),
+        )
+        cur.execute(
+            """
+            DELETE FROM games
+            WHERE status = 'waiting' AND player1 IN (
+                SELECT pseudo FROM players
+                WHERE NOT online OR last_seen < now() - make_interval(mins => %s)
+            );
+            """,
+            (minutes,),
+        )
+
+
 # ==================== MATCHMAKING ====================
 
 def _match_payload(game: dict, pseudo: str) -> dict:
@@ -212,28 +243,32 @@ def join_matchmaking(pseudo: str) -> dict:
         if current:
             return _match_payload(current, pseudo)
 
-        # 2. Files abandonnées (joueur hors-ligne)
+        # 2. Files abandonnées : joueur hors-ligne OU sans heartbeat récent
+        # (onglet fermé : le polling a cessé bien avant la purge du flag online)
         cur.execute(
             """
             DELETE FROM games
             WHERE status = 'waiting' AND player1 IN (
                 SELECT pseudo FROM players
-                WHERE NOT online OR last_seen < now() - make_interval(mins => %s)
+                WHERE NOT online
+                   OR last_seen < now() - make_interval(secs => %s)
             );
             """,
-            (STALE_MINUTES,),
+            (FRESH_SECONDS,),
         )
 
-        # 3. Rejoindre la file d'un autre joueur (FOR UPDATE : pas de doublon)
+        # 3. Rejoindre la file d'un autre joueur en ligne ET frais
         cur.execute(
             """
-            SELECT game_id, player1 FROM games
-            WHERE status = 'waiting' AND player2 IS NULL AND player1 != %s
-            ORDER BY created_at
+            SELECT g.game_id, g.player1 FROM games g
+            JOIN players p ON p.pseudo = g.player1
+            WHERE g.status = 'waiting' AND g.player2 IS NULL AND g.player1 != %s
+              AND p.online AND p.last_seen > now() - make_interval(secs => %s)
+            ORDER BY g.created_at
             LIMIT 1
-            FOR UPDATE SKIP LOCKED;
+            FOR UPDATE OF g SKIP LOCKED;
             """,
-            (pseudo,),
+            (pseudo, FRESH_SECONDS),
         )
         row = cur.fetchone()
         if row:

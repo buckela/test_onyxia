@@ -21,6 +21,7 @@ def reset_game_state() -> None:
 # ---------- 0. INIT ----------
 if "initialized" not in st.session_state:
     bdd.init_schema()              # idempotent, safe au reload
+    bdd.sweep_stale_players()      # purge les fantômes au démarrage
     kafka_utils.ensure_topics()    # idempotent, tolérant aux pannes
     st.session_state.initialized = True
 
@@ -30,6 +31,7 @@ if "pseudo" not in st.session_state:
     pseudo_input = st.text_input("Ton pseudo", max_chars=20)
     if st.button("Jouer", type="primary") and pseudo_input.strip():
         st.session_state.pseudo = pseudo_input.strip()
+        bdd.sweep_stale_players()  # purge périodique (à chaque login)
         bdd.login(st.session_state.pseudo)
         kafka_utils.send_event("login", player=st.session_state.pseudo)
         st.rerun()
