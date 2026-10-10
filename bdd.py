@@ -112,9 +112,15 @@ CREATE INDEX IF NOT EXISTS idx_moves_game ON moves (game_id, move_id);
 
 
 def init_schema() -> None:
-    """Crée le schéma si absent. Idempotent, à appeler au démarrage."""
+    """Crée le schéma si absent + répare les tables existantes. Idempotent."""
     with get_conn() as c, c.cursor() as cur:
         cur.execute(SCHEMA_SQL)
+        # Colonnes ajoutées après le 1er déploiement : les anciennes tables
+        # n'étaient pas modifiées par CREATE TABLE IF NOT EXISTS.
+        for col in ("started_at", "finished_at"):
+            cur.execute(
+                "ALTER TABLE games ADD COLUMN IF NOT EXISTS %s TIMESTAMPTZ;" % col
+            )
 
 
 # ==================== JOUEURS ====================
