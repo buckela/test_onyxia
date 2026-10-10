@@ -1,1 +1,1 @@
-pip install psycopg2-binary kafka-python streamlit
+pip install streamlit psycopg2-binary kafka-python streamlit-autorefresh

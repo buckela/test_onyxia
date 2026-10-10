@@ -1,169 +1,75 @@
 import streamlit as st
-import random
-import pandas as pd
+import game
+import bdd, kafka
+import uuid
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
-GRID = 10
-SHIPS = [("Porte-avions", 5), ("Croiseur", 4), ("Contre-torpilleur", 3),
-         ("Sous-marin", 3), ("Torpilleur", 2)]
+if "initialized" not in st.session_state:
+    bdd.init_schema()          # idempotent, safe au reload
+    st.session_state.initialized = True
 
-# ---------- État du jeu ----------
-def init_game():
-    st.session_state.phase = "placement"       # placement | battle | over
-    st.session_state.placing = 0               # index du bateau à placer
-    st.session_state.orientation = "H"         # H ou V
-    st.session_state.my_grid = {}               # {(x,y): nom_bateau}
-    st.session_state.enemy_grid = {}            # grille de l'IA
-    st.session_state.my_shots = {}             # {(x,y): "miss"/"hit"/"sunk"}
-    st.session_state.enemy_shots = {}
-    st.session_state.log = []
-    st.session_state.turn = "player"
-
-def random_place():
-    """Placement aléatoire (utilisé par l'IA et par le bouton auto)."""
-    grid, occupied = {}, set()
-    for name, size in SHIPS:
-        while True:
-            horiz = random.choice([True, False])
-            x = random.randint(0, GRID - (size if horiz else 1))
-            y = random.randint(0, GRID - (size if not horiz else 1))
-            cells = {(x+i, y) for i in range(size)} if horiz else {(x, y+i) for i in range(size)}
-            if not cells & occupied:
-                occupied |= cells
-                for c in cells: grid[c] = name
-                break
-    return grid
-
-if "phase" not in st.session_state:
-    init_game()
-
-st.title("🚢 Bataille Navale")
-
-# ---------- Phase placement ----------
-if st.session_state.phase == "placement":
-    st.subheader(f"Place ton **{SHIPS[st.session_state.placing][0]}** ({SHIPS[st.session_state.placing][1]} cases)")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🔄 Rotation (H/V)"):
-            st.session_state.orientation = "V" if st.session_state.orientation == "H" else "H"
-    with col2:
-        if st.button("🎲 Placement auto"):
-            st.session_state.my_grid = random_place()
-            st.session_state.placing = len(SHIPS)
-            st.session_state.phase = "battle"
-            st.session_state.enemy_grid = random_place()
-            st.rerun()
-    st.caption(f"Orientation actuelle : {st.session_state.orientation}")
-
-    for y in range(GRID):
-        cols = st.columns(GRID)
-        for x, c in enumerate(cols):
-            if (x, y) in st.session_state.my_grid:
-                c.button("⚓", key=f"p{x}-{y}", disabled=True)
-            else:
-                if c.button("·", key=f"p{x}-{y}", use_container_width=True):
-                    size = SHIPS[st.session_state.placing][1]
-                    name = SHIPS[st.session_state.placing][0]
-                    horiz = st.session_state.orientation == "H"
-                    cells = {(x+i, y) for i in range(size)} if horiz else {(x, y+i) for i in range(size)}
-                    if all(0 <= cx < GRID and 0 <= cy < GRID and (cx, cy) not in st.session_state.my_grid
-                           for cx, cy in cells):
-                        for cx, cy in cells:
-                            st.session_state.my_grid[(cx, cy)] = name
-                        st.session_state.placing += 1
-                        if st.session_state.placing >= len(SHIPS):
-                            st.session_state.phase = "battle"
-                            st.session_state.enemy_grid = random_place()
-                        st.rerun()
+# ---------- 1. LOGIN ----------
+if "pseudo" not in st.session_state:
+    st.title("🚢 Bataille Navale")
+    pseudo = st.text_input("Ton pseudo", max_chars=20)
+    if st.button("Jouer", type="primary") and pseudo.strip():
+        st.session_state.pseudo = pseudo.strip()
+        bdd.login(st.session_state.pseudo)
+        kafka.send_event("login", player=st.session_state.pseudo)
+        st.rerun()
     st.stop()
 
-# ---------- Helpers d'affichage ----------
-def render_grid(shots, grid, is_enemy):
-    """Affiche une grille : shots = {(x,y): résultat}, grid = positions bateaux."""
-    df = []
-    for y in range(GRID):
-        row = []
-        for x in range(GRID):
-            r = shots.get((x, y))
-            if r == "miss":     row.append("🌊")
-            elif r in ("hit", "sunk"): row.append("💥")
-            elif not is_enemy and (x, y) in grid: row.append("⚓")
-            else:               row.append("⬜")
-        df.append(row)
-    return pd.DataFrame(df, index=list("ABCDEFGHIJ"),
-                        columns=[str(i) for i in range(10)])
+# ---------- 2. MENU ----------
+if "game_id" not in st.session_state:
+    st.title(f"Salut {st.session_state.pseudo} 👋")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("🤖 Jouer contre l'IA", type="primary"):
+            st.session_state.game_id = bdd.create_game(st.session_state.pseudo, None)
+            st.session_state.opponent = "IA"
+            game.init_game()
+    with c2:
+        if st.button("👥 Matchmaking"):
+            opp = bdd.find_opponent(st.session_state.pseudo)
+            if opp:
+                st.session_state.game_id = bdd.create_game(st.session_state.pseudo, opp)
+                st.session_state.opponent = opp
+                kafka.send_event("match_found", players=[st.session_state.pseudo, opp])
+                game.init_game()
+            else:
+                st.warning("Personne d'autre en ligne... essaie l'IA !")
+    with c3:z
+        if st.button("🚪 Déconnexion"):
+            bdd.set_online(st.session_state.pseudo, False)
+            for k in list(st.session_state):
+                del st.session_state[k]
+            st.rerun()
+    st.stop()
 
-def is_sunk(grid, shots, cell):
-    """Vérifie si le bateau touché en `cell` est coulé."""
-    name = grid.get(cell)
-    if name is None: return False
-    return all(shots.get((x, y)) == "hit" or (x, y) == cell
-               for (x, y), n in grid.items() if n == name)
+# ---------- 3. PARTIE ----------
+# (la logique de jeu de la réponse précédente, déplacée dans game.py,
+#  avec ce hook sur chaque tir :)
+def on_shot(x, y, result, turn):
+    bdd.save_move(st.session_state.game_id, st.session_state.pseudo, turn, x, y, result)
+    kafka.send_move(st.session_state.game_id, st.session_state.pseudo, turn, x, y, result)
 
-def all_sunk(grid, shots):
-    return all(any(shots.get((x, y)) in ("hit", "sunk")
-               for (x, y) in grid if grid[(x, y)] == name)
-               for name, _ in SHIPS)
+def on_finish(winner):
+    bdd.finish_game(st.session_state.game_id, winner)
+    kafka.send_event("game_over", game_id=st.session_state.game_id, winner=winner)
 
-def ai_shot():
-    """L'IA tire au hasard sur une case non touchée (remplacée par TensorFlow plus tard)."""
-    options = [(x, y) for x in range(GRID) for y in range(GRID)
-               if (x, y) not in st.session_state.enemy_shots]
-    return random.choice(options)
-
-# ---------- Phase bataille ----------
-colg, coll = st.columns([3, 2])
-
-with colg:
-    st.subheader("🎯 Grille ennemie — à toi de tirer")
-    for y in range(GRID):
-        cols = st.columns(GRID)
-        for x, c in enumerate(cols):
-            r = st.session_state.my_shots.get((x, y))
-            if r:
-                c.button({"miss": "🌊", "hit": "💥", "sunk": "☠️"}[r],
-                         key=f"s{x}-{y}", disabled=True, use_container_width=True)
-            elif c.button("·", key=f"s{x}-{y}", use_container_width=True):
-                cell = (x, y)
-                if cell in st.session_state.enemy_grid:
-                    st.session_state.my_shots[cell] = "hit"
-                    if is_sunk(st.session_state.enemy_grid, st.session_state.my_shots, cell):
-                        st.session_state.my_shots[cell] = "sunk"
-                        st.session_state.log.append("😎 Touché coulé !")
-                    else:
-                        st.session_state.log.append("💥 Touché !")
-                else:
-                    st.session_state.my_shots[cell] = "miss"
-                    st.session_state.log.append("🌊 Raté...")
-                    st.rerun()  # pas de rerun ici : l'IA jouera au prochain render
-                # Tour de l'IA (si le joueur a raté, ou après chaque tir)
-                ex, ey = ai_shot()
-                hit = (ex, ey) in st.session_state.my_grid
-                st.session_state.enemy_shots[(ex, ey)] = "hit" if hit else "miss"
-                st.session_state.log.append(f"🤖 L'IA tire en {(ex, ey)} : "
-                                            "💥 touché !" if hit else "🌊 dans l'eau")
-                if all_sunk(st.session_state.enemy_grid, st.session_state.my_shots):
-                    st.session_state.phase = "over"; st.session_state.winner = "Toi 🎉"
-                elif all_sunk(st.session_state.my_grid, st.session_state.enemy_shots):
-                    st.session_state.phase = "over"; st.session_state.winner = "L'IA 🤖"
-                st.rerun()
-
-with coll:
-    st.subheader("🛡️ Ta flotte")
-    st.dataframe(render_grid(st.session_state.enemy_shots, st.session_state.my_grid, False),
-                 use_container_width=True, hide_index=False)
-    st.subheader("📜 Journal")
-    for msg in reversed(st.session_state.log[-8:]):
-        st.write(msg)
-
-if st.session_state.phase == "over":
-    st.balloons()
-    st.success(f"**{st.session_state.winner}** a gagné !")
-    if st.button("🔄 Nouvelle partie"):
-        init_game()
-        st.rerun()
-
-if st.sidebar.button("🔁 Recommencer"):
-    init_game()
-    st.rerun()
+game.render(
+    on_shot=lambda x, y, result: (
+        bdd.save_move(st.session_state.game_id, st.session_state.pseudo,
+                      st.session_state.turn, x, y, result),
+        kafka.safe_send_move(st.session_state.game_id, st.session_state.pseudo,
+                             st.session_state.turn, x, y, result),
+    ),
+    on_finish=lambda winner: (
+        bdd.finish_game(st.session_state.game_id, winner),
+        kafka.send_event("game_over", game_id=st.session_state.game_id, winner=winner),
+    ),
+    on_ships_placed=lambda grid: (
+        bdd.save_board(st.session_state.game_id, st.session_state.pseudo, grid),
+    ),
+)
