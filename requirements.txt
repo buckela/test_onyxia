@@ -1,7 +1,6 @@
 streamlit
 psycopg2-binary
 kafka-python
-streamlit-autorefresh
 boto3
 pandas
 # pyspark : uniquement dans le service Spark (spark_utils.py), image Onyxia déjà fournie

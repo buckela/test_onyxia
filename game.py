@@ -5,10 +5,10 @@
           les tirs adverses sont récupérés par polling (auto-refresh)
 """
 import random
+import time
 
 import pandas as pd
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 import bdd
 
@@ -110,6 +110,12 @@ def enter_pvp_game(game_id: str, opponent: str):
 
 def log(msg: str):
     st.session_state.log.append(f"[tour {st.session_state.turn}] {msg}")
+
+def _poll(seconds: float = 2.0):
+    """Rafraîchissement par polling serveur : fonctionne aussi dans un onglet
+    en arrière-plan (les timers JS des composants y sont bridés par le navigateur)."""
+    time.sleep(seconds)
+    st.rerun()
 
 # ================= RENDU =================
 
@@ -285,7 +291,7 @@ def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
 
     if not state["opponent_ready"]:
         st.warning("L'adversaire place encore sa flotte…")
-        st_autorefresh(interval=2000, key="pvp_wait_board")
+        _poll()
         return
 
     colg, cols_ = st.columns([3, 2])
@@ -311,7 +317,7 @@ def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
 
     if not state["my_turn"]:
         st.info("En attente du tir adverse — rafraîchissement automatique.")
-        st_autorefresh(interval=2000, key="pvp_poll")
+        _poll()
 
 # ================= POINT D'ENTRÉE =================
 

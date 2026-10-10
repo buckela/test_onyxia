@@ -1,6 +1,7 @@
 """app.py — Application Streamlit : bataille navale (IA + PvP)."""
+import time
+
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 import bdd
 import game
@@ -74,28 +75,28 @@ game_id = st.session_state.game_id
 
 # ---------- 3. SALLE D'ATTENTE (matchmaking) ----------
 if st.session_state.match_status == "waiting":
-    st_autorefresh(interval=2000, key="matchmaking_poll")
     st.title("🔍 Recherche d'un adversaire…")
-    st.info(f"Joueurs en file : {bdd.waiting_count()} — la page se rafraîchit toute seule.")
 
-    current = bdd.get_game(game_id)
-    if current is None:
-        reset_game_state()           # file supprimée (nettoyage)
-        st.rerun()
-    if current["status"] == "playing" and current["player2"]:
-        # Un adversaire a rejoint ma file
-        st.session_state.opponent = current["player2"]
+    # Idempotent : si une autre file est apparue (ou qu'un joueur m'a rejoint),
+    # fusionne les files / détecte le match. Garantit que deux files parallèles
+    # finissent toujours par se rejoindre, même en cas de clic simultané.
+    match = bdd.join_matchmaking(pseudo)
+    st.session_state.game_id = match["game_id"]
+    if match["status"] == "playing" and match["opponent"]:
+        st.session_state.opponent = match["opponent"]
         st.session_state.match_status = "playing"
-        game.enter_pvp_game(game_id, current["player2"])
+        game.enter_pvp_game(match["game_id"], match["opponent"])
         st.rerun()
-    if current["status"] != "waiting":
-        reset_game_state()
-        st.rerun()
+
+    st.info(f"Joueurs en file : {bdd.waiting_count()} — la page se rafraîchit toute seule.")
     if st.button("❌ Annuler la recherche"):
-        bdd.cancel_waiting_game(game_id, pseudo)
+        bdd.cancel_waiting_game(match["game_id"], pseudo)
         reset_game_state()
         st.rerun()
-    st.stop()
+    # Polling serveur : fonctionne aussi dans un onglet en arrière-plan,
+    # contrairement aux timers JS des composants d'auto-refresh.
+    time.sleep(2)
+    st.rerun()
 
 opponent = st.session_state.opponent
 

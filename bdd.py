@@ -187,17 +187,22 @@ def _match_payload(game: dict, pseudo: str) -> dict:
 
 def join_matchmaking(pseudo: str) -> dict:
     """
-    Point d'entrée du matchmaking (une seule transaction, atomique) :
-    1. déjà dans une partie waiting/playing → la renvoie (reconnexion)
-    2. sinon, rejoint la plus vieille file disponible → partie 'playing'
-    3. sinon, crée sa propre file → statut 'waiting'
+    Matchmaking atomique (une seule transaction). Idempotent : peut être
+    rappelé à chaque polling — deux files parallèles finissent toujours
+    par fusionner.
+
+    1. déjà dans une partie 'playing' → la renvoie (reconnexion / match trouvé)
+    2. nettoie les files fantômes (joueurs hors-ligne)
+    3. file d'un autre joueur en attente → je le rejoins (partie 'playing')
+       et je supprime mes éventuelles anciennes files
+    4. sinon, je réutilise ma file existante ou j'en crée une nouvelle
     """
     with get_conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        # 1. Partie en cours ?
         cur.execute(
             """
             SELECT game_id, player1, player2, status FROM games
-            WHERE status IN ('waiting', 'playing')
-              AND (player1 = %s OR player2 = %s)
+            WHERE status = 'playing' AND (player1 = %s OR player2 = %s)
             ORDER BY created_at DESC
             LIMIT 1;
             """,
@@ -207,7 +212,7 @@ def join_matchmaking(pseudo: str) -> dict:
         if current:
             return _match_payload(current, pseudo)
 
-        # Nettoie les files abandonnées (joueur hors-ligne)
+        # 2. Files abandonnées (joueur hors-ligne)
         cur.execute(
             """
             DELETE FROM games
@@ -219,6 +224,7 @@ def join_matchmaking(pseudo: str) -> dict:
             (STALE_MINUTES,),
         )
 
+        # 3. Rejoindre la file d'un autre joueur (FOR UPDATE : pas de doublon)
         cur.execute(
             """
             SELECT game_id, player1 FROM games
@@ -231,6 +237,11 @@ def join_matchmaking(pseudo: str) -> dict:
         )
         row = cur.fetchone()
         if row:
+            # Je sors de mes anciennes files avant de rejoindre celle-ci
+            cur.execute(
+                "DELETE FROM games WHERE status = 'waiting' AND player1 = %s AND player2 IS NULL;",
+                (pseudo,),
+            )
             cur.execute(
                 """
                 UPDATE games
@@ -244,6 +255,21 @@ def join_matchmaking(pseudo: str) -> dict:
                 logger.info("Match : %s rejoint %s", pseudo, row["player1"])
                 return {"game_id": str(row["game_id"]), "role": "player2",
                         "opponent": row["player1"], "status": "playing"}
+
+        # 4. Ma file existante, sinon nouvelle file
+        cur.execute(
+            """
+            SELECT game_id FROM games
+            WHERE status = 'waiting' AND player1 = %s AND player2 IS NULL
+            ORDER BY created_at
+            LIMIT 1;
+            """,
+            (pseudo,),
+        )
+        mine = cur.fetchone()
+        if mine:
+            return {"game_id": str(mine["game_id"]), "role": "player1",
+                    "opponent": None, "status": "waiting"}
 
         cur.execute(
             "INSERT INTO games (player1, player2, status) VALUES (%s, NULL, 'waiting') RETURNING game_id;",
