@@ -7,7 +7,6 @@
 import random
 import time
 
-import pandas as pd
 import streamlit as st
 
 import bdd
@@ -17,6 +16,25 @@ SHIPS = [("Porte-avions", 5), ("Croiseur", 4), ("Contre-torpilleur", 3),
          ("Sous-marin", 3), ("Torpilleur", 2)]
 
 RESULT_LABEL = {"miss": "🌊 raté", "hit": "💥 touché", "sunk": "☠️ coulé !"}
+
+# Cases déjà tirées : bien visibles (gros symboles, pas de faible nuance)
+CELL_MISS = "❌"   # tir raté
+CELL_HIT = "💥"    # bateau touché
+CELL_SUNK = "☠️"   # bateau coulé
+CELL_SHIP = "🚢"   # ton bateau intact (visible sur TA grille)
+CELL_SEA = "🟦"    # case d'eau non tirée (visible sur TA grille)
+CELL_UNKNOWN = "·" # case ennemie cliquable
+
+# CSS injecté : boutons de grille plus grands et lisibles
+_GRID_CSS = """
+<style>
+  div[data-testid="stButton"] > button {
+    min-height: 44px;
+    font-size: 1.2rem;
+    padding: 0;
+  }
+</style>
+"""
 
 # Clés posées par init_game() — utilisées par app.py pour le reset
 STATE_KEYS = ["phase", "vs_ai", "placing", "orientation", "my_grid", "enemy_grid",
@@ -120,13 +138,16 @@ def _poll(seconds: float = 2.0):
 # ================= RENDU =================
 
 def _cell_label(shot: str | None, has_ship: bool, show_ship: bool) -> str:
+    """Libellé d'une case, bien contrasté entre cases tirées et non tirées."""
     if shot == "miss":
-        return "🌊"
+        return CELL_MISS
     if shot == "hit":
-        return "💥"
+        return CELL_HIT
     if shot == "sunk":
-        return "☠️"
-    return "⚓" if (has_ship and show_ship) else "⬜"
+        return CELL_SUNK
+    if show_ship:
+        return CELL_SHIP if has_ship else CELL_SEA
+    return CELL_UNKNOWN
 
 def _render_grid(shots: dict, grid: dict, show_ships: bool,
                  key_prefix: str, clickable: bool = False, on_click=None):
@@ -134,24 +155,21 @@ def _render_grid(shots: dict, grid: dict, show_ships: bool,
         cols = st.columns(GRID)
         for x, c in enumerate(cols):
             shot = shots.get((x, y))
-            label = _cell_label(shot, (x, y) in grid, show_ships)
-            if clickable and shot is None and (x, y) not in grid and on_click:
-                if c.button("·", key=f"{key_prefix}{x}-{y}", use_container_width=True):
+            has_ship = (x, y) in grid
+            label = _cell_label(shot, has_ship, show_ships)
+            if clickable and shot is None and not has_ship and on_click:
+                if c.button(CELL_UNKNOWN, key=f"{key_prefix}{x}-{y}",
+                            use_container_width=True):
                     on_click(x, y)
             else:
                 c.button(label, key=f"{key_prefix}{x}-{y}", disabled=True,
                          use_container_width=True)
 
-def _summary_table(shots: dict, grid: dict) -> pd.DataFrame:
-    data = [[_cell_label(shots.get((x, y)), (x, y) in grid, True)
-             for x in range(GRID)] for y in range(GRID)]
-    return pd.DataFrame(data, index=list("ABCDEFGHIJ"),
-                        columns=[str(i) for i in range(GRID)])
-
 def _side_panel(journal: list[str]):
+    """Ta flotte + journal. Grille en boutons (plus grande que le dataframe)."""
     st.subheader("🛡️ Ta flotte")
-    st.dataframe(_summary_table(st.session_state.enemy_shots, st.session_state.my_grid),
-                 use_container_width=True)
+    _render_grid(st.session_state.enemy_shots, st.session_state.my_grid,
+                 True, "own_", clickable=False)
     st.subheader("📜 Journal")
     for msg in reversed(journal[-10:]):
         st.caption(msg)
@@ -160,8 +178,6 @@ def _exit_button(on_exit):
     if on_exit and st.button("🏠 Retour au menu"):
         on_exit()
         st.rerun()
-
-# ================= IA (temporaire : heuristique simple) =================
 
 def ai_shot() -> tuple[int, int]:
     ss = st.session_state
@@ -254,7 +270,7 @@ def _render_ai_battle(on_shot, on_finish, on_exit):
                 ss.turn += 1
         st.rerun()
 
-    colg, cols_ = st.columns([3, 2])
+    colg, cols_ = st.columns([1, 1])
     with colg:
         st.subheader("🎯 Grille ennemie")
         _render_grid(ss.my_shots, {}, False, "shoot_",
@@ -294,7 +310,7 @@ def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
         _poll()
         return
 
-    colg, cols_ = st.columns([3, 2])
+    colg, cols_ = st.columns([1, 1])
     with colg:
         if state["my_turn"]:
             st.subheader("🎯 Grille ennemie — à toi de tirer !")
@@ -324,6 +340,7 @@ def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
 def render(*, on_shot=None, on_finish=None, on_ships_placed=None,
            fetch_state=None, resolve_shot=None, on_exit=None):
     """Hooks fournis par app.py (persistance PostgreSQL + events Kafka)."""
+    st.markdown(_GRID_CSS, unsafe_allow_html=True)
     ss = st.session_state
     if ss.phase == "placement":
         render_placement(on_ships_placed)
