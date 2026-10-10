@@ -403,7 +403,8 @@ def record_shot(game_id: str, shooter: str, x: int, y: int) -> dict:
 
         cur.execute("SELECT ships FROM boards WHERE game_id = %s AND player = %s;", (game_id, opponent))
         row = cur.fetchone()
-        ships = row[0] if row else []
+        # RealDictCursor : la ligne est un dict, on indexe par nom de colonne
+        ships = row["ships"] if row else []
         cells = {(s["x"], s["y"]): s["ship"] for s in ships}
 
         cur.execute("SELECT x, y, result FROM moves WHERE game_id = %s AND player = %s;", (game_id, shooter))
