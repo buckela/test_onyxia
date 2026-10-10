@@ -2,3 +2,4 @@ streamlit
 psycopg2-binary 
 kafka-python 
 streamlit-autorefresh
+boto3

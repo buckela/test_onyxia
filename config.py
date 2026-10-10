@@ -1,17 +1,22 @@
 import os
 
-# PostgreSQL (ajuste selon ton service Onyxia)
-PG_HOST = os.getenv("PG_HOST", "postgresql-bataille")
-PG_PORT = int(os.getenv("PG_PORT", "5432"))
-PG_DB = os.getenv("PG_DB", "bataille")
-PG_USER = os.getenv("PG_USER", "postgres")
-PG_PASSWORD = os.getenv("PG_PASSWORD", "postgres")
+KAFKA_BOOTSTRAP = (
+            os.getenv("KAFKA_BOOTSTRAP")            # si défini dans my-secrets un jour
+            or f'{os.getenv("KAFKA_SERVICE_HOST")}:{os.getenv("KAFKA_SERVICE_PORT", "9092")}'
+        )
 
-# Kafka
-KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka-bataille:9092")
-TOPIC_MOVES = "game_moves"
-TOPIC_EVENTS = "game_events"   # login, matchmaking, fin de partie
+# ---- PostgreSQL (auto-injecté par Onyxia) ----
+PG_HOST = os.getenv("PGHOST", "localhost")
+PG_PORT = int(os.getenv("PGPORT", "5432"))
+PG_DB = os.getenv("PGDATABASE", "defaultdb")
+PG_USER = os.getenv("PGUSER", "postgres")
+PG_PASSWORD = os.getenv("PGPASSWORD", "")
 
-# S3 / MinIO
-S3_ENDPOINT = os.getenv("AWS_S3_ENDPOINT", "")
-S3_BUCKET = "bataille-navale"
+# ---- S3 / MinIO (auto-injecté, session OIDC) ----
+S3_ENDPOINT = os.getenv("AWS_ENDPOINT_URL",
+                        os.getenv("AWS_S3_ENDPOINT", "https://minio.lab.sspcloud.fr"))
+# Enlève le protocole si la var n'en contient pas
+if not S3_ENDPOINT.startswith("http"):
+    S3_ENDPOINT = "https://" + S3_ENDPOINT
+
+S3_BUCKET = os.getenv("USER", "buckela")   # ton bucket personnel = ton nom d'utilisateur

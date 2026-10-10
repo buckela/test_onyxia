@@ -1,6 +1,6 @@
 import streamlit as st
 import game
-import bdd, kafka
+import bdd, kafka_utils
 import uuid
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
@@ -16,7 +16,7 @@ if "pseudo" not in st.session_state:
     if st.button("Jouer", type="primary") and pseudo.strip():
         st.session_state.pseudo = pseudo.strip()
         bdd.login(st.session_state.pseudo)
-        kafka.send_event("login", player=st.session_state.pseudo)
+        kafka_utils.send_event("login", player=st.session_state.pseudo)
         st.rerun()
     st.stop()
 
@@ -35,11 +35,11 @@ if "game_id" not in st.session_state:
             if opp:
                 st.session_state.game_id = bdd.create_game(st.session_state.pseudo, opp)
                 st.session_state.opponent = opp
-                kafka.send_event("match_found", players=[st.session_state.pseudo, opp])
+                kafka_utils.send_event("match_found", players=[st.session_state.pseudo, opp])
                 game.init_game()
             else:
                 st.warning("Personne d'autre en ligne... essaie l'IA !")
-    with c3:z
+    with c3:
         if st.button("🚪 Déconnexion"):
             bdd.set_online(st.session_state.pseudo, False)
             for k in list(st.session_state):
@@ -52,22 +52,22 @@ if "game_id" not in st.session_state:
 #  avec ce hook sur chaque tir :)
 def on_shot(x, y, result, turn):
     bdd.save_move(st.session_state.game_id, st.session_state.pseudo, turn, x, y, result)
-    kafka.send_move(st.session_state.game_id, st.session_state.pseudo, turn, x, y, result)
+    kafka_utils.send_move(st.session_state.game_id, st.session_state.pseudo, turn, x, y, result)
 
 def on_finish(winner):
     bdd.finish_game(st.session_state.game_id, winner)
-    kafka.send_event("game_over", game_id=st.session_state.game_id, winner=winner)
+    kafka_utils.send_event("game_over", game_id=st.session_state.game_id, winner=winner)
 
 game.render(
     on_shot=lambda x, y, result: (
         bdd.save_move(st.session_state.game_id, st.session_state.pseudo,
                       st.session_state.turn, x, y, result),
-        kafka.safe_send_move(st.session_state.game_id, st.session_state.pseudo,
+        kafka_utils.safe_send_move(st.session_state.game_id, st.session_state.pseudo,
                              st.session_state.turn, x, y, result),
     ),
     on_finish=lambda winner: (
         bdd.finish_game(st.session_state.game_id, winner),
-        kafka.send_event("game_over", game_id=st.session_state.game_id, winner=winner),
+        kafka_utils.send_event("game_over", game_id=st.session_state.game_id, winner=winner),
     ),
     on_ships_placed=lambda grid: (
         bdd.save_board(st.session_state.game_id, st.session_state.pseudo, grid),
