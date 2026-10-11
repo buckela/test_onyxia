@@ -4,3 +4,4 @@ kafka-python-ng
 boto3
 pandas
 # Service Spark uniquement : pyspark, pandas, pyarrow (déjà dans l'image Onyxia)
+# Service vscode-tensorflow-gpu : tensorflow, numpy, pandas, pyarrow, boto3 (déjà fournis)

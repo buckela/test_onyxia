@@ -3,19 +3,18 @@
 - vs_ai : tout est calculé côté client (riposte immédiate de l'IA)
 - PvP   : la BDD fait foi — app.py fournit fetch_state / resolve_shot,
           les tirs adverses sont récupérés par polling (auto-refresh)
+
+La logique pure (grille, tirs, placements) vit dans game_logic.py, module
+partagé avec les scripts headless (simulation, entraînement, inférence).
 """
-import random
 import time
 
 import streamlit as st
 
 import bdd
-
-GRID = 10
-SHIPS = [("Porte-avions", 5), ("Croiseur", 4), ("Contre-torpilleur", 3),
-         ("Sous-marin", 3), ("Torpilleur", 2)]
-
-RESULT_LABEL = {"miss": "🌊 raté", "hit": "💥 touché", "sunk": "☠️ coulé !"}
+from game_logic import (GRID, RESULT_LABEL, SHIPS, all_sunk, can_place,
+                        grid_to_features, grid_to_ships, heuristic_shot,
+                        random_grid, ships_to_grid, shot_result)
 
 # Cases déjà tirées : bien visibles (gros symboles, pas de faible nuance)
 CELL_MISS = "❌"   # tir raté
@@ -41,63 +40,7 @@ STATE_KEYS = ["phase", "vs_ai", "placing", "orientation", "my_grid", "enemy_grid
               "my_shots", "enemy_shots", "turn", "log", "winner", "place_policy"]
 
 # ================= LOGIQUE PURE =================
-
-def random_grid() -> dict:
-    """Génère un placement aléatoire : {(x, y): nom_bateau}."""
-    grid, occupied = {}, set()
-    for name, size in SHIPS:
-        while True:
-            horiz = random.choice([True, False])
-            x = random.randint(0, GRID - (size if horiz else 1))
-            y = random.randint(0, GRID - (size if not horiz else 1))
-            cells = ([(x + i, y) for i in range(size)] if horiz
-                     else [(x, y + i) for i in range(size)])
-            if not any(c in occupied for c in cells):
-                occupied.update(cells)
-                for c in cells:
-                    grid[c] = name
-                break
-    return grid
-
-def can_place(grid: dict, x: int, y: int, size: int, horiz: bool) -> list | None:
-    """Cases occupées par le bateau si le placement est valide, sinon None."""
-    cells = ([(x + i, y) for i in range(size)] if horiz
-             else [(x, y + i) for i in range(size)])
-    if all(0 <= cx < GRID and 0 <= cy < GRID and (cx, cy) not in grid
-           for cx, cy in cells):
-        return cells
-    return None
-
-def shot_result(grid: dict, shots: dict, x: int, y: int) -> str:
-    """Résultat d'un tir sur `grid` (bateaux) sachant `shots` (tirs passés)."""
-    if (x, y) not in grid:
-        return "miss"
-    name = grid[(x, y)]
-    cells = [c for c, n in grid.items() if n == name]
-    sunk = all(shots.get(c) in ("hit", "sunk") or c == (x, y) for c in cells)
-    return "sunk" if sunk else "hit"
-
-def all_sunk(grid: dict, shots: dict) -> bool:
-    names = set(grid.values())
-    return bool(names) and all(
-        all(shots.get(c) in ("hit", "sunk") for c, n in grid.items() if n == name)
-        for name in names
-    )
-
-def grid_to_features(grid: dict, shots: dict) -> list[int]:
-    """Encode l'état (pour l'IA / dataset) : 0=inconnu, 1=raté, 2=touché."""
-    return [
-        {"miss": 1, "hit": 2, "sunk": 2}.get(shots.get((x, y)), 0)
-        for y in range(GRID) for x in range(GRID)
-    ]
-
-def grid_to_ships(grid: dict) -> list[dict]:
-    """{(x, y): nom} → [{"x", "y", "ship"}] : sérialisable en JSON/JSONB."""
-    return [{"x": x, "y": y, "ship": name} for (x, y), name in sorted(grid.items())]
-
-def ships_to_grid(ships: list[dict]) -> dict:
-    """Inverse de grid_to_ships (reconnexion : recharge le plateau depuis la BDD)."""
-    return {(s["x"], s["y"]): s["ship"] for s in ships}
+# → déplacée dans game_logic.py (importée ci-dessus)
 
 # ================= ÉTAT SESSION =================
 
@@ -181,23 +124,11 @@ def _exit_button(on_exit):
         st.rerun()
 
 def ai_shot(shots: dict | None = None) -> tuple[int, int]:
-    """Prochain tir de l'IA (heuristique : finir un bateau touché, sinon aléatoire).
-
-    `shots` : tirs déjà effectués par l'IA. Passé explicitement par les scripts
-    de simulation ; par défaut, lit la session Streamlit (comportement du jeu).
-    """
+    """Prochain tir de l'IA. Délègue à game_logic.heuristic_shot ;
+    par défaut lit la session Streamlit (comportement du jeu)."""
     if shots is None:
         shots = st.session_state.enemy_shots
-    options = [(x, y) for x in range(GRID) for y in range(GRID)
-               if (x, y) not in shots]
-    # Heuristique simple : finir un bateau touché si possible
-    for (x, y), r in shots.items():
-        if r == "hit":
-            for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                n = (x + dx, y + dy)
-                if n in options:
-                    return n
-    return random.choice(options)
+    return heuristic_shot(shots)
 
 # ================= PHASE PLACEMENT =================
 
