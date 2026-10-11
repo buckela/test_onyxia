@@ -60,3 +60,8 @@ python use_IA.py --placement                     # suggère un placement optimal
 Les modèles (.keras) sont sauvegardés dans `models/` et poussés sur S3
 (`bataille-navale/models/`). `tensor_v1` devient ensuite une policy jouable
 dans le simulateur : `python simulate_games.py --policy-a tensor_v1 --policy-b heuristic_v1`.
+
+```bash
+python pipeline_batch.py                  # une passe silver → gold (avant entraînement)
+python pipeline_batch.py --interval 60    # boucle toutes les heures
+```
