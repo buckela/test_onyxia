@@ -5,16 +5,20 @@ Pipeline data complet :
 - **Streamlit** ([app.py](app.py)) : front du jeu (contre l'IA ou PvP)
 - **PostgreSQL** ([bdd.py](bdd.py)) : joueurs, matchmaking (file atomique),
   plateaux et tirs — en PvP la BDD résout les tirs et fait foi
-- **Kafka** ([kafka_utils.py](kafka_utils.py)) : events + chaque tir → dataset
-- **Spark** ([spark_utils.py](spark_utils.py), service séparé) : topic `game_moves`
-  → Parquet bronze partitionné par date sur S3/MinIO
-- **TensorFlow** (plus tard) : entraînement d'une IA sur la zone bronze
+- **Kafka** ([kafka_utils.py](kafka_utils.py)) : events + chaque tir
+  (avec `ts` event-time et `policy` : human / heuristic_v1 / futur modèle) → dataset
+- **Spark** (service séparé) : pipeline médaillon sur S3/MinIO
+  - [spark_bronze.py](spark_bronze.py) : streaming Kafka → Parquet brut (longue durée)
+  - [spark_silver.py](spark_silver.py) : dédup + validation + jointure outcomes (batch)
+  - [spark_gold.py](spark_gold.py) : dataset ML state→action→label (batch)
+- **TensorFlow** (plus tard) : entraînement d'une IA sur la zone gold
 
 ## Lancer le jeu
 
 ```bash
 streamlit run app.py
 ```
+Connection : swijeji5xlodgdtqmmr7
 
 ## Vérifier la connectivité des services
 
@@ -22,8 +26,10 @@ streamlit run app.py
 python test_services.py
 ```
 
-## Lancer le job de streaming (dans le service Spark)
+## Pipeline de données (dans le service Spark)
 
 ```bash
-python spark_utils.py
+python spark_bronze.py    # streaming continu : Kafka → bronze
+python spark_silver.py    # batch : bronze → silver (dédup, jointure outcomes)
+python spark_gold.py      # batch : silver → gold (dataset ML)
 ```

@@ -109,6 +109,7 @@ if opponent is None:
         on_shot=lambda x, y, result, shooter: (
             bdd.save_move(game_id, shooter, st.session_state.turn, x, y, result),
             kafka_utils.send_move(game_id, shooter, st.session_state.turn, x, y, result,
+                                  policy="human" if shooter == pseudo else "heuristic_v1",
                                   extra={"mode": "ai"}),
         ),
         on_finish=lambda winner: (
@@ -123,6 +124,7 @@ else:
     def resolve_shot(x: int, y: int) -> dict:
         shot = bdd.record_shot(game_id, pseudo, x, y)
         kafka_utils.send_move(game_id, pseudo, shot["turn"], x, y, shot["result"],
+                              policy="human",
                               extra={"mode": "pvp", "opponent": opponent})
         if shot["winner"]:
             kafka_utils.send_event("game_over", game_id=game_id, winner=shot["winner"])

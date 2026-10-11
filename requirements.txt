@@ -3,4 +3,4 @@ psycopg2-binary
 kafka-python
 boto3
 pandas
-# pyspark : uniquement dans le service Spark (spark_utils.py), image Onyxia déjà fournie
+# Service Spark uniquement : pyspark, pandas, pyarrow (déjà dans l'image Onyxia)

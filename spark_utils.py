@@ -1,32 +1,29 @@
-"""spark_utils.py — Streaming Kafka → Parquet (zone bronze) sur S3/MinIO.
+"""spark_utils.py — Configuration Spark partagée par les 3 jobs du pipeline.
 
-À exécuter dans le service Spark Onyxia (PAS dans l'app Streamlit) :
-    python spark_utils.py        # ou spark-submit spark_utils.py
+Pipeline médaillon (un seul service Spark suffit) :
+    spark_bronze.py  : streaming Kafka → Parquet brut       (longue durée)
+    spark_silver.py  : batch nettoyage + dédup + jointures  (à la demande)
+    spark_gold.py    : batch dataset ML (features/labels)   (à la demande)
 
-Les identifiants AWS/MinIO (dont le token STS) sont injectés par Onyxia.
+Les identifiants AWS/MinIO (token STS) sont injectés par Onyxia.
+⚠️ Ils expirent après quelques heures : relancer le job bronze si le
+   stream meurt avec une erreur 403.
 """
 import os
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_date, from_json
-from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 import config
 
-# Les champs absents du JSON sont ignorés par from_json → tolérant aux extras
-MOVE_SCHEMA = StructType([
-    StructField("game_id", StringType()), StructField("player", StringType()),
-    StructField("turn", IntegerType()), StructField("x", IntegerType()),
-    StructField("y", IntegerType()), StructField("result", StringType()),
-    StructField("mode", StringType()),
-])
+BASE = f"s3a://{config.S3_BUCKET}/bataille-navale"
 
 
-def get_spark() -> SparkSession:
+def get_spark(app_name: str) -> SparkSession:
+    """Session Spark configurée pour MinIO (s3a + credentials STS Onyxia)."""
     # s3a attend un endpoint SANS schéma ; le SSL est piloté à part
     endpoint = config.S3_ENDPOINT.replace("https://", "").replace("http://", "")
     return (
-        SparkSession.builder.appName("bataille-navale-bronze")
+        SparkSession.builder.appName(app_name)
         # MinIO : nécessite hadoop-aws + configuration s3a
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
@@ -43,31 +40,11 @@ def get_spark() -> SparkSession:
     )
 
 
-def stream_moves_to_bronze(spark: SparkSession) -> None:
-    """Topic game_moves → Parquet bronze partitionné par date."""
-    base = f"s3a://{config.S3_BUCKET}/bataille-navale"
-    raw = (
-        spark.readStream.format("kafka")
-        .option("kafka.bootstrap.servers", config.KAFKA_BOOTSTRAP)
-        .option("subscribe", "game_moves")
-        .option("startingOffsets", "earliest")
-        .load()
-    )
-    moves = (
-        raw.select(from_json(col("value").cast("string"), MOVE_SCHEMA).alias("d"))
-        .select("d.*")
-        .withColumn("date", current_date())
-    )
-    (
-        moves.writeStream.format("parquet")
-        .option("path", f"{base}/bronze/game_moves")
-        .option("checkpointLocation", f"{base}/checkpoints/game_moves")
-        .partitionBy("date")
-        .trigger(processingTime="1 minute")
-        .start()
-        .awaitTermination()
-    )
+def zone(zone_name: str, table: str) -> str:
+    """Chemin S3 d'une table : s3a://<bucket>/bataille-navale/<zone>/<table>."""
+    return f"{BASE}/{zone_name}/{table}"
 
 
-if __name__ == "__main__":
-    stream_moves_to_bronze(get_spark())
+def checkpoint(name: str) -> str:
+    """Checkpoint streaming (offsets Kafka → reprise exactly-once après crash)."""
+    return f"{BASE}/checkpoints/{name}"

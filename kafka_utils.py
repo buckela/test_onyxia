@@ -14,6 +14,7 @@ import json
 import logging
 import threading
 import atexit
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 from kafka import KafkaConsumer, KafkaProducer
@@ -107,12 +108,15 @@ def _send(topic: str, value: dict, key: str | None = None) -> bool:
 
 def send_move(game_id: str, player: str, turn: int,
               x: int, y: int, result: str,
+              policy: str | None = None,
               extra: dict | None = None) -> bool:
     """
     À appeler à CHAQUE tir. Alimente le dataset IA (via Spark → Parquet).
 
     result : 'miss' | 'hit' | 'sunk'
-    extra  : métadonnées libres (mode de jeu, contre IA ou humain...)
+    policy : qui a décidé le coup — 'human', 'heuristic_v1', 'tensor_v2'...
+             (versioning indispensable pour comparer les générations de données)
+    extra  : métadonnées libres (mode de jeu, adversaire...)
     """
     payload = {
         "game_id": game_id,
@@ -121,6 +125,8 @@ def send_move(game_id: str, player: str, turn: int,
         "x": x,
         "y": y,
         "result": result,
+        "policy": policy,
+        "ts": datetime.now(timezone.utc).isoformat(),   # event time
         "mode": (extra or {}).pop("mode", None),
         **(extra or {}),
     }
@@ -130,7 +136,9 @@ def send_move(game_id: str, player: str, turn: int,
 def send_event(event_type: str, **data) -> bool:
     """Événements de cycle de vie : login, game_start, game_over, match_found..."""
     return _send(TOPIC_GAME_EVENTS,
-                 {"event": event_type, **data},
+                 {"event": event_type,
+                  "ts": datetime.now(timezone.utc).isoformat(),
+                  **data},
                  key=data.get("game_id"))
 
 
@@ -232,7 +240,8 @@ if __name__ == "__main__":
     print("Topics :", list_topics())
 
     gid = "test-game-123"
-    ok = send_move(gid, "tester", 1, 4, 7, "hit", extra={"mode": "ai"})
+    ok = send_move(gid, "tester", 1, 4, 7, "hit",
+                   policy="heuristic_v1", extra={"mode": "ai"})
     print("send_move :", "OK" if ok else "ÉCHEC")
     send_event("game_over", game_id=gid, winner="tester")
 
