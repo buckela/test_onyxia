@@ -48,6 +48,24 @@ EPS_MIN = 0.05
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")   # logs TF moins verbeux
 
 
+def configure_gpu() -> None:
+    """TensorFlow utilise le GPU automatiquement ; on configure juste le
+    memory growth (n'alloue la VRAM qu'au fur et à mesure, propre sur un
+    service mutualisé) et on logge clairement ce qui est détecté.
+
+    NB : pas de mixed_float16 ici — pour un DQN la stabilité numérique des
+    Q-values prime, et le modèle est trop petit pour en profiter.
+    """
+    gpus = tf.config.list_physical_devices("GPU")
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+    if gpus:
+        print(f"✅ GPU actif ({len(gpus)}×) : {gpus[0].name}")
+    else:
+        print("⚠️  Aucun GPU visible — entraînement CPU "
+              "(vérifie que tu es bien sur l'image vscode-tensorflow-GPU)")
+
+
 # ==================== DONNÉES S3 ====================
 
 def load_gold_table(table: str) -> pd.DataFrame:
@@ -285,7 +303,7 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     os.makedirs(MODEL_DIR, exist_ok=True)
-    print("GPU détecté :", bool(tf.config.list_physical_devices("GPU")))
+    configure_gpu()
 
     if not args.placement_only:
         train_dqn(args)
