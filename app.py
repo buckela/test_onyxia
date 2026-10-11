@@ -116,7 +116,10 @@ if opponent is None:
             bdd.finish_game(game_id, winner),
             kafka_utils.send_event("game_over", game_id=game_id, winner=winner),
         ),
-        on_ships_placed=lambda ships: bdd.save_board(game_id, pseudo, ships),
+        on_ships_placed=lambda ships, player, policy: (
+            bdd.save_board(game_id, player, ships) if player != "IA" else None,
+            kafka_utils.send_board(game_id, player, ships, policy=policy, mode="ai"),
+        ),
         on_exit=reset_game_state,
     )
 else:
@@ -133,6 +136,9 @@ else:
     game.render(
         fetch_state=lambda: bdd.get_game_state(game_id, pseudo),
         resolve_shot=resolve_shot,
-        on_ships_placed=lambda ships: bdd.save_board(game_id, pseudo, ships),
+        on_ships_placed=lambda ships, player, policy: (
+            bdd.save_board(game_id, player, ships),
+            kafka_utils.send_board(game_id, player, ships, policy=policy, mode="pvp"),
+        ),
         on_exit=reset_game_state,
     )

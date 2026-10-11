@@ -29,9 +29,10 @@ logger = logging.getLogger("bataille.kafka")
 
 TOPIC_GAME_MOVES = "game_moves"      # chaque tir joué (dataset IA)
 TOPIC_GAME_EVENTS = "game_events"    # login, matchmaking, fin de partie...
+TOPIC_GAME_BOARDS = "game_boards"    # placement des flottes (dataset placement IA)
 TOPIC_CHAT = "game_chat"             # optionnel : chat entre joueurs
 
-ALL_TOPICS = [TOPIC_GAME_MOVES, TOPIC_GAME_EVENTS, TOPIC_CHAT]
+ALL_TOPICS = [TOPIC_GAME_MOVES, TOPIC_GAME_EVENTS, TOPIC_GAME_BOARDS, TOPIC_CHAT]
 
 
 # ==================== PRODUCER ====================
@@ -133,6 +134,24 @@ def send_move(game_id: str, player: str, turn: int,
     return _send(TOPIC_GAME_MOVES, payload, key=game_id)
 
 
+def send_board(game_id: str, player: str, ships: list[dict],
+               policy: str | None = None, mode: str | None = None) -> bool:
+    """
+    Placement final d'une flotte — base du dataset « où placer ses bateaux ».
+
+    ships  : [{"x": int, "y": int, "ship": str}, ...] (17 cases)
+    policy : qui a décidé le placement — 'human', 'random_v1', futur modèle...
+    """
+    return _send(TOPIC_GAME_BOARDS, {
+        "game_id": game_id,
+        "player": player,
+        "ships": ships,
+        "policy": policy,
+        "mode": mode,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }, key=game_id)
+
+
 def send_event(event_type: str, **data) -> bool:
     """Événements de cycle de vie : login, game_start, game_over, match_found..."""
     return _send(TOPIC_GAME_EVENTS,
@@ -145,6 +164,13 @@ def send_event(event_type: str, **data) -> bool:
 def send_chat(game_id: str, player: str, message: str) -> bool:
     return _send(TOPIC_CHAT, {"game_id": game_id, "player": player, "message": message},
                  key=game_id)
+
+
+def flush(timeout: float = 30.0) -> None:
+    """Vide le buffer du producer (fin de batch — scripts de simulation)."""
+    producer = _ProducerHolder.get()
+    if producer is not None:
+        producer.flush(timeout=timeout)
 
 
 # ==================== ADMIN ====================

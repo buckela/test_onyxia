@@ -1,6 +1,6 @@
 streamlit
 psycopg2-binary
-kafka-python
+kafka-python-ng
 boto3
 pandas
 # Service Spark uniquement : pyspark, pandas, pyarrow (déjà dans l'image Onyxia)

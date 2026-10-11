@@ -10,12 +10,13 @@ Batch (à la demande) :  python spark_silver.py     (ou spark-submit)
   qu'un merge incrémental (passer à Delta Lake si le volume explose)
 """
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, row_number, to_timestamp, when
+from pyspark.sql.functions import col, row_number, size, to_timestamp, when
 from pyspark.sql.window import Window
 
 from spark_utils import get_spark, zone
 
 VALID_RESULTS = ("miss", "hit", "sunk")
+TOTAL_SHIP_CELLS = 17   # 5 + 4 + 3 + 3 + 2
 
 
 def clean_moves(moves: DataFrame) -> DataFrame:
@@ -47,12 +48,27 @@ def game_outcomes(events: DataFrame) -> DataFrame:
     )
 
 
+def clean_boards(boards: DataFrame) -> DataFrame:
+    """Dédup des flottes (1re occurrence par joueur/partie) + 17 cases valides."""
+    w = Window.partitionBy("game_id", "player").orderBy("kafka_ts", "kafka_offset")
+    return (
+        boards
+        .withColumn("rn", row_number().over(w))
+        .filter(col("rn") == 1).drop("rn")
+        .filter(col("game_id").isNotNull() & col("player").isNotNull())
+        .filter(size(col("ships")) == TOTAL_SHIP_CELLS)
+        .withColumn("event_ts", to_timestamp("ts"))
+        .drop("raw")
+    )
+
+
 def main() -> None:
     spark = get_spark("bataille-silver")
     spark.sparkContext.setLogLevel("WARN")
 
     moves = spark.read.parquet(zone("bronze", "game_moves"))
     events = spark.read.parquet(zone("bronze", "game_events"))
+    boards = spark.read.parquet(zone("bronze", "game_boards"))
 
     outcomes = game_outcomes(events)
     enriched = (
@@ -68,6 +84,8 @@ def main() -> None:
     (enriched.write.mode("overwrite").partitionBy("date")
      .parquet(zone("silver", "game_moves")))
     outcomes.write.mode("overwrite").parquet(zone("silver", "game_outcomes"))
+    (clean_boards(boards).write.mode("overwrite").partitionBy("date")
+     .parquet(zone("silver", "game_boards")))
 
     print(f"✅ silver : {enriched.count()} tirs, {outcomes.count()} parties terminées")
 

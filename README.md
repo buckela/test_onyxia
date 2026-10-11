@@ -33,3 +33,13 @@ python spark_bronze.py    # streaming continu : Kafka → bronze
 python spark_silver.py    # batch : bronze → silver (dédup, jointure outcomes)
 python spark_gold.py      # batch : silver → gold (dataset ML)
 ```
+
+## Générer des données d'entraînement (simulation)
+
+```bash
+python simulate_games.py --games 1000 --mirror
+```
+
+Parties IA vs IA (`random_v1` vs `heuristic_v1`) avec la vraie logique du jeu,
+envoyées à Kafka avec `mode="simulation"` (séparées des vraies parties dans
+silver/gold). Le bronze streaming doit tourner pendant la simulation.

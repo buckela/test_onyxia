@@ -38,7 +38,7 @@ _GRID_CSS = """
 
 # Clés posées par init_game() — utilisées par app.py pour le reset
 STATE_KEYS = ["phase", "vs_ai", "placing", "orientation", "my_grid", "enemy_grid",
-              "my_shots", "enemy_shots", "turn", "log", "winner"]
+              "my_shots", "enemy_shots", "turn", "log", "winner", "place_policy"]
 
 # ================= LOGIQUE PURE =================
 
@@ -114,6 +114,7 @@ def init_game(vs_ai: bool = True):
     ss.turn = 1
     ss.log = []
     ss.winner = None
+    ss.place_policy = "human"   # comment la flotte a été placée (human | random_v1)
     if vs_ai:
         ss.enemy_grid = random_grid()
 
@@ -179,12 +180,18 @@ def _exit_button(on_exit):
         on_exit()
         st.rerun()
 
-def ai_shot() -> tuple[int, int]:
-    ss = st.session_state
+def ai_shot(shots: dict | None = None) -> tuple[int, int]:
+    """Prochain tir de l'IA (heuristique : finir un bateau touché, sinon aléatoire).
+
+    `shots` : tirs déjà effectués par l'IA. Passé explicitement par les scripts
+    de simulation ; par défaut, lit la session Streamlit (comportement du jeu).
+    """
+    if shots is None:
+        shots = st.session_state.enemy_shots
     options = [(x, y) for x in range(GRID) for y in range(GRID)
-               if (x, y) not in ss.enemy_shots]
+               if (x, y) not in shots]
     # Heuristique simple : finir un bateau touché si possible
-    for (x, y), r in ss.enemy_shots.items():
+    for (x, y), r in shots.items():
         if r == "hit":
             for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
                 n = (x + dx, y + dy)
@@ -205,6 +212,7 @@ def render_placement(on_ships_placed):
         st.rerun()
     if c2.button("🎲 Placement auto"):
         ss.my_grid = random_grid()
+        ss.place_policy = "random_v1"
         _finish_placement(on_ships_placed)
         st.rerun()
     if c3.button("⬅️ Annuler dernier") and ss.my_grid:
@@ -218,6 +226,7 @@ def render_placement(on_ships_placed):
         if not cells:
             log("Placement invalide ⛔")
             return
+        ss.place_policy = "human"
         for c in cells:
             ss.my_grid[c] = name
         ss.placing += 1
@@ -232,7 +241,11 @@ def _finish_placement(on_ships_placed):
     ss.phase = "battle"
     if ss.vs_ai and not ss.enemy_grid:
         ss.enemy_grid = random_grid()
-    on_ships_placed(grid_to_ships(ss.my_grid))   # → app.py : bdd.save_board
+    on_ships_placed(grid_to_ships(ss.my_grid), ss.pseudo, ss.place_policy)
+    if ss.vs_ai:
+        # la flotte IA part aussi dans Kafka (baseline 'random_v1' pour le gold)
+        on_ships_placed(grid_to_ships(ss.enemy_grid), "IA", "random_v1")
+    ss.place_policy = "human"
 
 # ================= PHASE BATAILLE — VS IA =================
 

@@ -44,6 +44,21 @@ EVENT_SCHEMA = StructType([
     StructField("ts", StringType()),
 ])
 
+SHIP_SCHEMA = StructType([
+    StructField("x", IntegerType()),
+    StructField("y", IntegerType()),
+    StructField("ship", StringType()),
+])
+
+BOARD_SCHEMA = StructType([
+    StructField("game_id", StringType()),
+    StructField("player", StringType()),
+    StructField("ships", ArrayType(SHIP_SCHEMA)),   # 17 cases
+    StructField("mode", StringType()),
+    StructField("policy", StringType()),
+    StructField("ts", StringType()),
+])
+
 
 def stream_topic(spark: SparkSession, topic: str, schema: StructType,
                  table: str) -> StreamingQuery:
@@ -81,6 +96,7 @@ def main() -> None:
     queries = [
         stream_topic(spark, "game_moves", MOVE_SCHEMA, "game_moves"),
         stream_topic(spark, "game_events", EVENT_SCHEMA, "game_events"),
+        stream_topic(spark, "game_boards", BOARD_SCHEMA, "game_boards"),
     ]
     for q in queries:
         print(f"✅ stream '{q.name}' actif")
