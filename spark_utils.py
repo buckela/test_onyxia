@@ -11,21 +11,32 @@ Les identifiants AWS/MinIO (token STS) sont injectés par Onyxia.
 """
 import os
 
+import pyspark
 from pyspark.sql import SparkSession
 
 import config
 
 BASE = f"s3a://{config.S3_BUCKET}/bataille-navale"
 
+# La source Kafka n'est PAS incluse dans Spark : package externe obligatoire,
+# dont la version doit matcher exactement Spark + Scala de l'image Onyxia.
+SPARK_VERSION = pyspark.__version__
+_SCALA = "2.13" if SPARK_VERSION.startswith("4.") else "2.12"
+KAFKA_PACKAGE = f"org.apache.spark:spark-sql-kafka-0-10_{_SCALA}:{SPARK_VERSION}"
+# hadoop-aws aligné sur le Hadoop embarqué par Spark
+HADOOP_AWS_PACKAGE = ("org.apache.hadoop:hadoop-aws:3.4.1"
+                      if SPARK_VERSION.startswith("4.")
+                      else "org.apache.hadoop:hadoop-aws:3.3.4")
+
 
 def get_spark(app_name: str) -> SparkSession:
-    """Session Spark configurée pour MinIO (s3a + credentials STS Onyxia)."""
+    """Session Spark configurée pour Kafka + MinIO (s3a, credentials STS Onyxia)."""
     # s3a attend un endpoint SANS schéma ; le SSL est piloté à part
     endpoint = config.S3_ENDPOINT.replace("https://", "").replace("http://", "")
     return (
         SparkSession.builder.appName(app_name)
-        # MinIO : nécessite hadoop-aws + configuration s3a
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4")
+        # Kafka (source streaming) + hadoop-aws (accès S3A/MinIO)
+        .config("spark.jars.packages", f"{KAFKA_PACKAGE},{HADOOP_AWS_PACKAGE}")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled",
