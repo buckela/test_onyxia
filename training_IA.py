@@ -116,7 +116,13 @@ def build_transitions(df: pd.DataFrame) -> list[tuple]:
 # ==================== DQN ====================
 
 def build_dqn() -> keras.Model:
-    """CNN sur la grille 10×10 : la contiguïté des bateaux est spatiale."""
+    """CNN sur la grille 10×10 : la contiguïté des bateaux est spatiale.
+
+    jit_compile=False : XLA fusionne Conv2D+Bias+ReLU en un kernel que
+    l'autotuner cuDNN ne configure pas (bug connu T4 / convs minuscules).
+    Sans XLA, les ops passent par cuDNN classique — perte de perf négligeable
+    à cette taille de modèle.
+    """
     inp = keras.Input(shape=(GRID, GRID, 1))
     x = keras.layers.Conv2D(32, 3, padding="same", activation="relu")(inp)
     x = keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
@@ -124,7 +130,8 @@ def build_dqn() -> keras.Model:
     x = keras.layers.Dense(256, activation="relu")(x)
     out = keras.layers.Dense(GRID * GRID)(x)   # Q(s, a) pour chaque case
     model = keras.Model(inp, out)
-    model.compile(optimizer=keras.optimizers.Adam(1e-3), loss=keras.losses.Huber())
+    model.compile(optimizer=keras.optimizers.Adam(1e-3),
+                  loss=keras.losses.Huber(), jit_compile=False)
     return model
 
 
@@ -258,7 +265,8 @@ def train_placement() -> keras.Model:
         keras.layers.Dense(64, activation="relu"),
         keras.layers.Dense(1),
     ])
-    model.compile(optimizer=keras.optimizers.Adam(1e-3), loss="mae")
+    model.compile(optimizer=keras.optimizers.Adam(1e-3), loss="mae",
+                  jit_compile=False)   # même précaution XLA que le DQN
     model.fit(Xtr, ytr, validation_data=(Xval, yval), epochs=200, batch_size=64,
               callbacks=[keras.callbacks.EarlyStopping(
                   patience=15, restore_best_weights=True)],
