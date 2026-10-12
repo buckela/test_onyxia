@@ -9,8 +9,8 @@ import kafka_utils
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
-GAME_KEYS = ["game_id", "opponent", "match_status", "classement"]
-
+GAME_KEYS = ["game_id", "opponent", "match_status", "classement", "IA_policy"]
+illegal_pseudo = ["sim_A", "sim_B", "IA", "heuristic_v1", "random_v1", "tensor_v1"]
 
 def reset_game_state() -> None:
     """Retour au menu : purge l'état de la partie en cours."""
@@ -30,11 +30,14 @@ if "pseudo" not in st.session_state:
     st.title("🚢 Bataille Navale")
     pseudo_input = st.text_input("Ton pseudo", max_chars=20)
     if st.button("Jouer", type="primary") and pseudo_input.strip():
-        st.session_state.pseudo = pseudo_input.strip()
-        bdd.sweep_stale_players()  # purge périodique (à chaque login)
-        bdd.login(st.session_state.pseudo)
-        kafka_utils.send_event("login", player=st.session_state.pseudo)
-        st.rerun()
+        if pseudo_input.strip() in illegal_pseudo:
+            st.text(f"Illegal name : {pseudo_input.strip()}")
+        else :
+            st.session_state.pseudo = pseudo_input.strip()
+            bdd.sweep_stale_players()  # purge périodique (à chaque login)
+            bdd.login(st.session_state.pseudo)
+            kafka_utils.send_event("login", player=st.session_state.pseudo)
+            st.rerun()
     st.stop()
 
 pseudo = st.session_state.pseudo
@@ -50,7 +53,7 @@ if "classement" in st.session_state:
 
 # ---------- 2. MENU ----------
 if "game_id" not in st.session_state:
-    st.title(f"Salut {pseudo} 👋")
+    st.title(f"Pseudo : {pseudo}")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("🤖 Jouer contre l'IA", type="primary"):
@@ -59,9 +62,11 @@ if "game_id" not in st.session_state:
             st.session_state.match_status = "playing"
             game.init_game(vs_ai=True)
             kafka_utils.send_event("game_start",
-                                   game_id=st.session_state.game_id,
-                                   players=[pseudo], mode="ai")
+                                game_id=st.session_state.game_id,
+                                players=[pseudo], mode="ai")
             st.rerun()
+        st.session_state.IA_policy = st.selectbox("Type IA :", ["heuristic_v1", "random_v1", "tensor_v1"], index=0)
+            
     with c2:
         if st.button("👥 Matchmaking"):
             match = bdd.join_matchmaking(pseudo)
@@ -122,7 +127,7 @@ if opponent is None:
         on_shot=lambda x, y, result, shooter: (
             bdd.save_move(game_id, shooter, st.session_state.turn, x, y, result),
             kafka_utils.send_move(game_id, shooter, st.session_state.turn, x, y, result,
-                                  policy="human" if shooter == pseudo else "heuristic_v1",
+                                  policy="human" if shooter == pseudo else st.session_state.IA_policy,
                                   extra={"mode": "ai"}),
         ),
         on_finish=lambda winner: (
