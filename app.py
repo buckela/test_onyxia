@@ -9,7 +9,7 @@ import kafka_utils
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
-GAME_KEYS = ["game_id", "opponent", "match_status"]
+GAME_KEYS = ["game_id", "opponent", "match_status", "classement"]
 
 
 def reset_game_state() -> None:
@@ -40,10 +40,18 @@ if "pseudo" not in st.session_state:
 pseudo = st.session_state.pseudo
 bdd.touch(pseudo)  # heartbeat : reste visible pour le matchmaking
 
+if "classement" in st.session_state:
+    st.title("Classement")
+    if st.button("Quitter"):
+        st.session_state.pop("classement")
+        st.rerun()
+
+
+
 # ---------- 2. MENU ----------
 if "game_id" not in st.session_state:
     st.title(f"Salut {pseudo} 👋")
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("🤖 Jouer contre l'IA", type="primary"):
             st.session_state.game_id = bdd.create_ai_game(pseudo)
@@ -67,6 +75,11 @@ if "game_id" not in st.session_state:
                                        players=[pseudo, match["opponent"]])
             st.rerun()
     with c3:
+        if st.button("Classement"):
+            st.session_state.classement = True
+            st.rerun()
+
+    with c4:
         if st.button("🚪 Déconnexion"):
             bdd.logout(pseudo)
             st.session_state.clear()
