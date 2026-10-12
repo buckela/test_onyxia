@@ -14,7 +14,8 @@ import streamlit as st
 import bdd
 from game_logic import (GRID, RESULT_LABEL, SHIPS, all_sunk, can_place,
                         grid_to_features, grid_to_ships, heuristic_shot,
-                        random_grid, ships_to_grid, shot_result)
+                        random_shot, dqn1_shot, random_grid,
+                        ships_to_grid, shot_result)
 
 # Cases déjà tirées : bien visibles (gros symboles, pas de faible nuance)
 CELL_MISS = "❌"   # tir raté
@@ -128,8 +129,14 @@ def ai_shot(shots: dict | None = None) -> tuple[int, int]:
     par défaut lit la session Streamlit (comportement du jeu)."""
     if shots is None:
         shots = st.session_state.enemy_shots
-    return heuristic_shot(shots)
-
+    match st.session_state.IA_policy :
+        case "heuristic_v1":
+            return heuristic_shot(shots)
+        case "random_v1":
+            return random_shot(shots)
+        case "tensor_v1":
+            return dqn1_shot(shots)
+    
 # ================= PHASE PLACEMENT =================
 
 def render_placement(on_ships_placed):

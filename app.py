@@ -9,7 +9,7 @@ import kafka_utils
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
-GAME_KEYS = ["game_id", "opponent", "match_status"]
+GAME_KEYS = ["game_id", "opponent", "match_status", "IA_policy"]
 
 
 def reset_game_state() -> None:
@@ -42,7 +42,7 @@ bdd.touch(pseudo)  # heartbeat : reste visible pour le matchmaking
 
 # ---------- 2. MENU ----------
 if "game_id" not in st.session_state:
-    st.title(f"Salut {pseudo} 👋")
+    st.title(f"Pseudo : {pseudo}")
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("🤖 Jouer contre l'IA", type="primary"):
@@ -51,9 +51,11 @@ if "game_id" not in st.session_state:
             st.session_state.match_status = "playing"
             game.init_game(vs_ai=True)
             kafka_utils.send_event("game_start",
-                                   game_id=st.session_state.game_id,
-                                   players=[pseudo], mode="ai")
+                                game_id=st.session_state.game_id,
+                                players=[pseudo], mode="ai")
             st.rerun()
+        st.session_state.IA_policy = st.selectbox("Type IA :", ["heuristic_v1", "random_v1", "tensor_v1"], index=0)
+            
     with c2:
         if st.button("👥 Matchmaking"):
             match = bdd.join_matchmaking(pseudo)
@@ -109,7 +111,7 @@ if opponent is None:
         on_shot=lambda x, y, result, shooter: (
             bdd.save_move(game_id, shooter, st.session_state.turn, x, y, result),
             kafka_utils.send_move(game_id, shooter, st.session_state.turn, x, y, result,
-                                  policy="human" if shooter == pseudo else "heuristic_v1",
+                                  policy="human" if shooter == pseudo else st.session_state.IA_policy,
                                   extra={"mode": "ai"}),
         ),
         on_finish=lambda winner: (
