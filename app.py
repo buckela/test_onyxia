@@ -10,7 +10,7 @@ import kafka_utils
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
 GAME_KEYS = ["game_id", "opponent", "match_status", "IA_policy"]
-
+illegal_pseudo = ["sim_A", "sim_B", "IA", "heuristic_v1", "random_v1", "tensor_v1"]
 
 def reset_game_state() -> None:
     """Retour au menu : purge l'état de la partie en cours."""
@@ -30,11 +30,14 @@ if "pseudo" not in st.session_state:
     st.title("🚢 Bataille Navale")
     pseudo_input = st.text_input("Ton pseudo", max_chars=20)
     if st.button("Jouer", type="primary") and pseudo_input.strip():
-        st.session_state.pseudo = pseudo_input.strip()
-        bdd.sweep_stale_players()  # purge périodique (à chaque login)
-        bdd.login(st.session_state.pseudo)
-        kafka_utils.send_event("login", player=st.session_state.pseudo)
-        st.rerun()
+        if pseudo_input.strip() in illegal_pseudo:
+            st.text(f"Illegal name : {pseudo_input.strip()}")
+        else :
+            st.session_state.pseudo = pseudo_input.strip()
+            bdd.sweep_stale_players()  # purge périodique (à chaque login)
+            bdd.login(st.session_state.pseudo)
+            kafka_utils.send_event("login", player=st.session_state.pseudo)
+            st.rerun()
     st.stop()
 
 pseudo = st.session_state.pseudo
