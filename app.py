@@ -43,16 +43,20 @@ if "pseudo" not in st.session_state:
 pseudo = st.session_state.pseudo
 bdd.touch(pseudo)  # heartbeat : reste visible pour le matchmaking
 
+
+
+# ---------- Classement ----------
 if "classement" in st.session_state:
     st.title("Classement")
     if st.button("Quitter"):
         st.session_state.pop("classement")
         st.rerun()
+    st.stop()
 
 
 
 # ---------- 2. MENU ----------
-if "game_id" not in st.session_state:
+if "game_id" not in st.session_state :
     st.title(f"Pseudo : {pseudo}")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
