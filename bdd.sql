@@ -45,3 +45,12 @@ CREATE TABLE IF NOT EXISTS moves (
     ts          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_moves_game ON moves (game_id, move_id);
+
+CREATE TABLE IF NOT EXISTS player_stats(
+    player TEXT PRIMARY KEY,
+    total_games BIGINT NOT NULL DEFAULT 0,
+    wins BIGINT NOT NULL DEFAULT 0,
+    total_hits BIGINT NOT NULL DEFAULT 0,
+    total_actions BIGINT NOT NULL DEFAULT 0,
+);
+
