@@ -48,7 +48,7 @@ bdd.touch(pseudo)  # heartbeat : reste visible pour le matchmaking
 
 # ---------- Classement ----------
 if "classement" in st.session_state:
-    st.title("Classement")
+    st.title("Classement de la semaine : ")
     colonnes = ["Nom", "Games", "Wins", "Winrate", "Hits", "Play", "Hit_rate", "Score"]
     classement_data = bdd.get_classement()
     
