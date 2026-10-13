@@ -6,6 +6,7 @@ import streamlit as st
 import bdd
 import game
 import kafka_utils
+import pandas as pd
 
 st.set_page_config(page_title="Bataille Navale", page_icon="🚢")
 
@@ -48,6 +49,12 @@ bdd.touch(pseudo)  # heartbeat : reste visible pour le matchmaking
 # ---------- Classement ----------
 if "classement" in st.session_state:
     st.title("Classement")
+    colonnes = ["Nom", "Games", "Wins", "Winrate", "Hits", "Play", "Hit_rate", "Score"]
+    classement_data = bdd.get_classement()
+    
+    df = pd.DataFrame(classement_data, columns=colonnes)
+
+    st.table(df)
     if st.button("Quitter"):
         st.session_state.pop("classement")
         st.rerun()

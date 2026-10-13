@@ -113,6 +113,14 @@ CREATE TABLE IF NOT EXISTS moves (
     ts          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_moves_game ON moves (game_id, move_id);
+
+CREATE TABLE IF NOT EXISTS player_stats(
+    player TEXT PRIMARY KEY,
+    total_games BIGINT NOT NULL DEFAULT 0,
+    wins BIGINT NOT NULL DEFAULT 0,
+    total_hits BIGINT NOT NULL DEFAULT 0,
+    total_actions BIGINT NOT NULL DEFAULT 0
+);
 """
 
 
@@ -133,6 +141,16 @@ def init_schema() -> None:
 def login(pseudo: str) -> int:
     """Upsert du pseudo et marque en ligne. Renvoie player_id."""
     with get_conn() as c, c.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO player_stats (player)
+            VALUES (%s)
+            ON CONFLICT (player)
+            DO NOTHING;
+            """,
+            (pseudo,)
+        )
+
         cur.execute(
             """
             INSERT INTO players (pseudo, online, last_seen)
@@ -358,6 +376,23 @@ def finish_game(game_id: str, winner: str) -> None:
             "UPDATE games SET status = 'finished', winner = %s, finished_at = now() WHERE game_id = %s;",
             (winner, game_id),
         )
+        cur.execute(
+                "UPDATE player_stats SET wins = wins +1 WHERE player = %s ;", (winner,),
+            )
+        cur.execute(
+            "SELECT player1, player2 FROM games WHERE game_id = %s;",
+            (game_id,),
+        )
+        players = cur.fetchone()
+        
+        if players:
+            player1 = str(players[0])
+            player2 = str(players[1])
+            cur.execute(
+                "UPDATE player_stats SET total_games = total_games +1 WHERE player = %s ;UPDATE player_stats SET total_games = total_games +1 WHERE player = %s ;", (player1, player2),
+            )
+
+
 
 
 # ==================== PLATEAUX & TIRS ====================
@@ -388,6 +423,13 @@ def save_move(game_id: str, player: str, turn: int, x: int, y: int, result: str)
             "INSERT INTO moves (game_id, player, turn, x, y, result) VALUES (%s, %s, %s, %s, %s, %s);",
             (game_id, player, turn, x, y, result),
         )
+        cur.execute(
+                "UPDATE player_stats SET total_actions = total_actions +1 WHERE player = %s ;", (player,),
+            )
+        if (result == "hit"):
+            cur.execute(
+                "UPDATE player_stats SET total_hits = total_hits +1 WHERE player = %s ;", (player,),
+            )
 
 
 def get_moves(game_id: str) -> list[dict]:
@@ -399,6 +441,24 @@ def get_moves(game_id: str) -> list[dict]:
         )
         return cur.fetchall()
 
+def get_classement() -> List[dict]:
+    with get_conn() as c, c.cursor() as cur:
+        cur.execute(
+            """ WITH stats AS (
+                SELECT 
+                    player, total_games, wins, 
+                    ROUND(100.0 * wins / NULLIF(total_games, 0), 2) AS winrate, 
+                    total_hits, total_actions, 
+                    ROUND(100.0 * total_hits / NULLIF(total_actions, 0), 2) AS hit_rate
+                FROM player_stats
+            )
+            select *, 
+            ROUND(LN(total_games + 1) * winrate * hit_rate) AS score 
+            FROM stats 
+            WHERE total_games > 0
+            ORDER BY score DESC NULLS LAST;""",
+        )
+        return cur.fetchall()
 
 def record_shot(game_id: str, shooter: str, x: int, y: int) -> dict:
     """
