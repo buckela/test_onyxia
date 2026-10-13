@@ -38,6 +38,10 @@ from game_logic import (GRID, R_HIT, R_MISS, R_SUNK, R_WIN, SHIP_CELLS,
                         BattleshipEnv)
 from use_IA import greedy_cell
 
+SHOOTER_NAME_PRE = "dn_shooter.keras"
+SHOOTER_NAME_DQN = "dqn2_shooter.keras"
+PLACEMENT_NAME = "placement_regressor.keras"
+
 MODEL_DIR = "models"
 GAMMA = 0.95
 BATCH_SIZE = 64
@@ -206,6 +210,10 @@ def train_dqn(args) -> keras.Model:
             target.set_weights(model.get_weights())
             print(f"  epoch {epoch + 1}/{args.offline_epochs} — "
                   f"solo moyen : {evaluate_solo(model, 20):.1f} tirs")
+        path = os.path.join(MODEL_DIR, SHOOTER_NAME_PRE)
+        model.save(path)
+        print(f"✅ Pré-learning sauvegardé : {path} — solo moyen final : "
+            f"{evaluate_solo(model, 100):.1f} tirs (random ≈ 95, heuristic ≈ 55-60)")
 
     # ---------- Phase online : self-play dans l'environnement ----------
     env = BattleshipEnv()
@@ -232,7 +240,7 @@ def train_dqn(args) -> keras.Model:
                   f"solo moyen : {evaluate_solo(model):.1f} tirs "
                   f"(partie jouée en {env.turns} tirs)")
 
-    path = os.path.join(MODEL_DIR, "dqn_shooter.keras")
+    path = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
     model.save(path)
     print(f"✅ DQN sauvegardé : {path} — solo moyen final : "
           f"{evaluate_solo(model, 100):.1f} tirs (random ≈ 95, heuristic ≈ 55-60)")
@@ -277,7 +285,7 @@ def train_placement() -> keras.Model:
     print(f"✅ Régression placement — MAE : {mae:.4f} | baseline (moyenne) : "
           f"{baseline:.4f}  → le modèle {'apprend 📈' if mae < baseline * 0.95 else 'ne bat pas encore la baseline (il faut plus de données)'}")
 
-    path = os.path.join(MODEL_DIR, "placement_regressor.keras")
+    path = os.path.join(MODEL_DIR, PLACEMENT_NAME)
     model.save(path)
     print(f"✅ Régression sauvegardée : {path}")
     return model
@@ -288,7 +296,7 @@ def train_placement() -> keras.Model:
 def upload_models() -> None:
     """Pousse les .keras vers s3://<bucket>/bataille-navale/models/."""
     s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
-    for name in ("dqn_shooter.keras", "placement_regressor.keras"):
+    for name in (SHOOTER_NAME_PRE, SHOOTER_NAME_DQN, PLACEMENT_NAME):
         local = os.path.join(MODEL_DIR, name)
         if os.path.exists(local):
             s3.upload_file(local, config.S3_BUCKET,
@@ -315,6 +323,6 @@ if __name__ == "__main__":
 
     if not args.placement_only:
         train_dqn(args)
-    train_placement()
+    #train_placement()
     if args.upload:
         upload_models()

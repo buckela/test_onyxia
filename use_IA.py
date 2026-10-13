@@ -24,8 +24,10 @@ from game_logic import (GRID, SHIP_CELLS, BattleshipEnv, all_sunk, cell_to_xy,
                         random_grid, shot_result)
 
 MODEL_DIR = "models"
-SHOOTER_PATH = os.path.join(MODEL_DIR, "dqn_shooter.keras")
-PLACEMENT_PATH = os.path.join(MODEL_DIR, "placement_regressor.keras")
+SHOOTER_NAME_DQN = "dqn_shooter.keras"
+PLACEMENT_NAME = "placement_regressor.keras"
+SHOOTER_PATH = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
+PLACEMENT_PATH = os.path.join(MODEL_DIR, PLACEMENT_NAME)
 
 _shooter = None
 _regressor = None
@@ -163,7 +165,7 @@ def download_models() -> None:
     import config
     s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    for name in ("dqn_shooter.keras", "placement_regressor.keras"):
+    for name in (SHOOTER_NAME_DQN, PLACEMENT_NAME):
         key = f"bataille-navale/models/{name}"
         s3.download_file(config.S3_BUCKET, key, os.path.join(MODEL_DIR, name))
         print(f"✅ {name} téléchargé")
