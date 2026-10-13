@@ -12,7 +12,6 @@ Batch (à la demande) :  python spark_silver.py     (ou spark-submit)
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, row_number, size, to_timestamp, when
 from pyspark.sql.window import Window
-
 from spark_utils import get_spark, zone
 
 VALID_RESULTS = ("miss", "hit", "sunk")
