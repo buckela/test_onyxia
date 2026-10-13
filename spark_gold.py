@@ -24,7 +24,6 @@ import pandas as pd
 from pyspark.sql import functions as F
 from pyspark.sql.functions import col, explode, udf
 from pyspark.sql.types import ArrayType, IntegerType, StringType, StructField, StructType
-
 from spark_utils import get_spark, zone
 
 GRID = 10
