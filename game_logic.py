@@ -108,11 +108,13 @@ def heuristic_shot(shots: dict) -> tuple[int, int]:
                     return n
     return random.choice(options)
 
+
 def random_shot(shots: dict) -> tuple[int, int]:
     """Full aléatoire"""
     options = [(x, y) for x in range(GRID) for y in range(GRID)
                if (x, y) not in shots]
     return random.choice(options)
+
 
 def dqn1_shot(shots: dict) -> tuple[int, int]:
     """Policy 'tensor_v1' : à implementer lorsque l'IA aura fini de s'entrainer"""
@@ -125,6 +127,7 @@ def dqn1_shot(shots: dict) -> tuple[int, int]:
                 if n in options:
                     return n
     return random.choice(options)
+
 
 def cell_to_xy(cell: int) -> tuple[int, int]:
     """Index 0-99 → (x, y). Cohérent avec action_cell = y * GRID + x du gold."""
