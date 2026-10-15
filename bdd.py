@@ -59,16 +59,18 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
 @contextmanager
 def get_conn() -> Iterator[Any]:
     """Connexion du pool avec commit/rollback automatiques."""
-    pool = _get_pool()
-    conn = pool.getconn()
     try:
+        pool = _get_pool()
+        conn = pool.getconn()
         yield conn
         conn.commit()
     except Exception:
+        print(Exception)
         try:
             if not conn.closed:
                 conn.rollback()
         except Exception:
+            print(Exception)
             pass
         raise
     finally:
@@ -130,8 +132,14 @@ CREATE TABLE IF NOT EXISTS player_stats(
 
 def init_schema() -> None:
     """Crée le schéma si absent + répare les tables existantes. Idempotent."""
-    with get_conn() as c, c.cursor() as cur:
-        cur.execute(SCHEMA_SQL)
+    for attempt in range(2):
+        try:
+            with get_conn() as c, c.cursor() as cur:
+                cur.execute(SCHEMA_SQL)
+            break
+        except psycopg2.OperationalError:
+            if attempt == 1:
+                raise
 
 
 # ==================== JOUEURS ====================
