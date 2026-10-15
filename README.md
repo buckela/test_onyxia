@@ -76,5 +76,5 @@ python pipeline_batch.py --interval 60    # boucle toutes les heures
 
 - opti latence ?
 
-- responsive téléphone
+- /responsive téléphone mode pc - landscape
 
