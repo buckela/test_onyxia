@@ -68,7 +68,7 @@ python pipeline_batch.py --interval 60    # boucle toutes les heures
 
 # TODO
 
-- erreur fermeture curseur sql après un temps
+- /erreur fermeture curseur sql après un temps
 
 - ajout bouton abandon
 
