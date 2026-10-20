@@ -1,0 +1,6 @@
+kafka-python-ng
+boto3
+pandas
+tensorflow
+numpy
+pyarrow

@@ -1,0 +1,5 @@
+streamlit
+psycopg2-binary
+kafka-python-ng
+boto3
+pandas
