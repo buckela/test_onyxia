@@ -2,11 +2,18 @@
 
 Deux modèles :
 
-1. DQN pour les TIRS (models/dqn_shooter.keras)
+1. DQN pour les TIRS (models/dqn_shooter.keras) 
    - Phase OFFLINE : transitions (s, a, r, s', done) reconstruites depuis
      gold/ml_dataset (replay des parties Kafka → S3)
    - Phase ONLINE  : self-play dans BattleshipEnv (epsilon-greedy, target network)
    - Rewards définis dans game_logic.py (hit +1, sunk +3, win +10)
+
+   upgrade : 
+   -MLP CNN
+   -PER
+   -double dqn, dueling dqn
+   - n step dqn
+   - lyapunov-basd dqn
 
 2. RÉGRESSION pour les PLACEMENTS (models/placement_regressor.keras)
    - Entrée : placement[100] + adjacent_pairs + edge_cells (gold/placements)
@@ -117,7 +124,7 @@ def build_transitions(df: pd.DataFrame) -> list[tuple]:
     return transitions
 
 
-# ==================== DQN ====================
+# ==================== DQN====================
 
 def build_dqn() -> keras.Model:
     """CNN sur la grille 10×10 : la contiguïté des bateaux est spatiale.
@@ -212,7 +219,7 @@ def train_dqn(args) -> keras.Model:
                   f"solo moyen : {evaluate_solo(model, 20):.1f} tirs")
         path = os.path.join(MODEL_DIR, SHOOTER_NAME_PRE)
         model.save(path)
-        print(f"✅ Pré-learning sauvegardé : {path} — solo moyen final : "
+        print(f"Pré-learning sauvegardé : {path} — solo moyen final : "
             f"{evaluate_solo(model, 100):.1f} tirs (random ≈ 95, heuristic ≈ 55-60)")
 
     # ---------- Phase online : self-play dans l'environnement ----------
@@ -242,7 +249,7 @@ def train_dqn(args) -> keras.Model:
 
     path = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
     model.save(path)
-    print(f"✅ DQN sauvegardé : {path} — solo moyen final : "
+    print(f"DQN sauvegardé : {path} — solo moyen final : "
           f"{evaluate_solo(model, 100):.1f} tirs (random ≈ 95, heuristic ≈ 55-60)")
     return model
 
@@ -253,7 +260,7 @@ def train_placement() -> keras.Model:
     df = load_gold_table("placements")
     print(f"Placement : {len(df)} lignes")
     if len(df) < 200:
-        print("⚠️  Peu de données de placement — génère des parties "
+        print("Peu de données de placement — génère des parties "
               "(simulate_games.py) pour un signal exploitable.")
 
     X_place = np.array(df["placement"].tolist(), dtype=np.float32)
@@ -282,12 +289,12 @@ def train_placement() -> keras.Model:
 
     mae = model.evaluate(Xval, yval, verbose=0)
     baseline = float(np.mean(np.abs(yval - ytr.mean())))   # prédire la moyenne
-    print(f"✅ Régression placement — MAE : {mae:.4f} | baseline (moyenne) : "
+    print(f"Régression placement — MAE : {mae:.4f} | baseline (moyenne) : "
           f"{baseline:.4f}  → le modèle {'apprend 📈' if mae < baseline * 0.95 else 'ne bat pas encore la baseline (il faut plus de données)'}")
 
     path = os.path.join(MODEL_DIR, PLACEMENT_NAME)
     model.save(path)
-    print(f"✅ Régression sauvegardée : {path}")
+    print(f"Régression sauvegardée : {path}")
     return model
 
 
