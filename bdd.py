@@ -59,16 +59,22 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
 @contextmanager
 def get_conn() -> Iterator[Any]:
     """Connexion du pool avec commit/rollback automatiques."""
-    pool = _get_pool()
-    conn = pool.getconn()
     try:
+        pool = _get_pool()
+        conn = pool.getconn()
         yield conn
         conn.commit()
     except Exception:
-        conn.rollback()
+        print(Exception)
+        try:
+            if not conn.closed:
+                conn.rollback()
+        except Exception:
+            print(Exception)
+            pass
         raise
     finally:
-        pool.putconn(conn)
+        pool.putconn(conn, close=bool(conn.closed))
 
 
 # ==================== SCHÉMA ====================
@@ -126,14 +132,14 @@ CREATE TABLE IF NOT EXISTS player_stats(
 
 def init_schema() -> None:
     """Crée le schéma si absent + répare les tables existantes. Idempotent."""
-    with get_conn() as c, c.cursor() as cur:
-        cur.execute(SCHEMA_SQL)
-        # Colonnes ajoutées après le 1er déploiement : les anciennes tables
-        # n'étaient pas modifiées par CREATE TABLE IF NOT EXISTS.
-        for col in ("started_at", "finished_at"):
-            cur.execute(
-                "ALTER TABLE games ADD COLUMN IF NOT EXISTS %s TIMESTAMPTZ;" % col
-            )
+    for attempt in range(2):
+        try:
+            with get_conn() as c, c.cursor() as cur:
+                cur.execute(SCHEMA_SQL)
+            break
+        except psycopg2.OperationalError:
+            if attempt == 1:
+                raise
 
 
 # ==================== JOUEURS ====================
@@ -195,7 +201,7 @@ def logout(pseudo: str) -> None:
         )
 
 
-def sweep_stale_players(minutes: int = 5) -> None:
+def sweep_stale_players(minutes: int = 2) -> None:
     """Purge les joueurs fantômes (onglet fermé sans déconnexion).
 
     Appelée au démarrage et au login : hors-ligne si plus de heartbeat
@@ -206,6 +212,16 @@ def sweep_stale_players(minutes: int = 5) -> None:
             """
             UPDATE players SET online = FALSE
             WHERE online AND last_seen < now() - make_interval(mins => %s);
+            """,
+            (minutes,),
+        )
+        cur.execute(
+            """
+            UPDATE games SET status = 'finished'
+            WHERE status = 'playing' AND player1 IN (
+                SELECT pseudo FROM players
+                WHERE NOT online OR last_seen < now() - make_interval(mins => %s)
+            );
             """,
             (minutes,),
         )
@@ -419,16 +435,16 @@ def get_board(game_id: str, player: str) -> list[dict] | None:
 def save_move(game_id: str, player: str, turn: int, x: int, y: int, result: str) -> None:
     """Enregistrement brut (mode IA : le résultat est calculé côté client)."""
     with get_conn() as c, c.cursor() as cur:
-        cur.execute(
-            "INSERT INTO moves (game_id, player, turn, x, y, result) VALUES (%s, %s, %s, %s, %s, %s);",
-            (game_id, player, turn, x, y, result),
-        )
-        cur.execute(
-                "UPDATE player_stats SET total_actions = total_actions +1 WHERE player = %s ;", (player,),
-            )
+        
         if (result == "hit"):
             cur.execute(
-                "UPDATE player_stats SET total_hits = total_hits +1 WHERE player = %s ;", (player,),
+                "INSERT INTO moves (game_id, player, turn, x, y, result) VALUES (%s, %s, %s, %s, %s, %s);UPDATE player_stats SET total_actions = total_actions +1 WHERE player = %s ;UPDATE player_stats SET total_hits = total_hits +1 WHERE player = %s ;",
+                (game_id, player, turn, x, y, result, player, player,),
+            )
+        else:
+            cur.execute(
+                "INSERT INTO moves (game_id, player, turn, x, y, result) VALUES (%s, %s, %s, %s, %s, %s);UPDATE player_stats SET total_actions = total_actions +1 WHERE player = %s ;",
+                (game_id, player, turn, x, y, result, player,),
             )
 
 

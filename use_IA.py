@@ -24,7 +24,7 @@ from game_logic import (GRID, SHIP_CELLS, BattleshipEnv, all_sunk, cell_to_xy,
                         random_grid, shot_result)
 
 MODEL_DIR = "models"
-SHOOTER_NAME_DQN = "dqn_shooter.keras"
+SHOOTER_NAME_DQN = "dn_shooter.keras"
 PLACEMENT_NAME = "placement_regressor.keras"
 SHOOTER_PATH = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
 PLACEMENT_PATH = os.path.join(MODEL_DIR, PLACEMENT_NAME)
