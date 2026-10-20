@@ -23,7 +23,7 @@ CELL_HIT = "💥"    # bateau touché
 CELL_SUNK = "☠️"   # bateau coulé
 CELL_SHIP = "🚢"   # ton bateau intact (visible sur TA grille)
 CELL_SEA = "🟦"    # case d'eau non tirée (visible sur TA grille)
-CELL_UNKNOWN = "·" # case ennemie cliquable
+CELL_UNKNOWN = "🟦" # case ennemie cliquable
 
 # CSS injecté : boutons de grille plus grands et lisibles
 _GRID_CSS = """
