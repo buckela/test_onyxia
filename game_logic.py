@@ -85,13 +85,13 @@ def all_sunk(grid: dict, shots: dict) -> bool:
 
 
 def grid_to_features(grid: dict, shots: dict) -> list[int]:
-    """Encode l'état (pour l'IA / dataset) : 0=inconnu, 1=raté, 2=touché/coulé.
+    """Encode l'état (pour l'IA / dataset) : 0=inconnu, 1=raté, 2=touché 3=coulé.
 
     NB : `grid` n'est pas utilisé (l'agent ne connaît pas la flotte adverse) —
     le paramètre est conservé pour compatibilité, passez {}.
     """
     return [
-        {"miss": 1, "hit": 2, "sunk": 2}.get(shots.get((x, y)), 0)
+        {"miss": 1, "hit": 2, "sunk": 3}.get(shots.get((x, y)), 0)
         for y in range(GRID) for x in range(GRID)
     ]
 
@@ -143,7 +143,7 @@ def xy_to_cell(x: int, y: int) -> int:
 class BattleshipEnv:
     """Environnement solo pour le DQN : l'agent tire sur une flotte cachée.
 
-    État   : vecteur 100 (0=inconnu, 1=raté, 2=touché/coulé)
+    État   : vecteur 100 (0=inconnu, 1=raté, 2=touché 3=coulé)
     Action : index de case 0-99
     Reward : R_HIT / R_SUNK / R_MISS, + R_WIN à la victoire
     """

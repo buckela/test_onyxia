@@ -109,7 +109,7 @@ def build_transitions(df: pd.DataFrame) -> list[tuple]:
     transitions = []
     for _, g in df.groupby(["game_id", "player"]):
         g = g.sort_values("turn")
-        states = np.array(g["features"].tolist(), dtype=np.float32) / 2.0
+        states = np.array(g["features"].tolist(), dtype=np.float32) / 3.0
         actions = g["action_cell"].to_numpy()
         hits = g["label_hit"].to_numpy()
         sunk = (g["result"] == "sunk").to_numpy()
@@ -188,11 +188,11 @@ def evaluate_solo(model, n: int = 50) -> float:
     env = BattleshipEnv()
     turns = []
     for _ in range(n):
-        state = np.array(env.reset(), np.float32) / 2.0
+        state = np.array(env.reset(), np.float32) / 3.0
         done = False
         while not done:
             _, _, done, _ = env.step(greedy_cell(model, state))
-            state = np.array(env.state(), np.float32) / 2.0
+            state = np.array(env.state(), np.float32) / 3.0
         turns.append(env.turns)
     return float(np.mean(turns))
 
@@ -228,12 +228,12 @@ def train_dqn(args) -> keras.Model:
     decay = (epsilon - EPS_MIN) / max(1, int(args.episodes * 0.7))
     steps = 0
     for ep in range(args.episodes):
-        state = np.array(env.reset(), np.float32) / 2.0
+        state = np.array(env.reset(), np.float32) / 3.0
         done = False
         while not done:
             a = act(model, state, epsilon)
             ns, r, done, _ = env.step(a)
-            ns = np.array(ns, np.float32) / 2.0
+            ns = np.array(ns, np.float32) / 3.0
             buf.add(state, a, np.float32(r), ns, done)
             state = ns
             if len(buf) >= BATCH_SIZE:
