@@ -1,0 +1,5 @@
+kafka-python-ng
+boto3
+pandas
+pyspark
+pyarrow 

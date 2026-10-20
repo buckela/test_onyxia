@@ -29,9 +29,14 @@ CELL_UNKNOWN = "·" # case ennemie cliquable
 _GRID_CSS = """
 <style>
   div[data-testid="stButton"] > button {
-    min-height: 44px;
+    min-height: 40px;
     font-size: 1.2rem;
     padding: 0;
+  }
+  div[data-testid="stButton"] {
+    min-height: 30px;
+    min-width: 30px;
+  }
   }
 </style>
 """

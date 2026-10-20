@@ -65,3 +65,16 @@ dans le simulateur : `python simulate_games.py --policy-a tensor_v1 --policy-b h
 python pipeline_batch.py                  # une passe silver → gold (avant entraînement)
 python pipeline_batch.py --interval 60    # boucle toutes les heures
 ```
+
+# TODO
+
+- /erreur fermeture curseur sql après un temps
+
+- ajout bouton abandon
+
+- qlik traitement statistique -> conversion spark
+
+- opti latence ?
+
+- /responsive téléphone mode pc - landscape
+
