@@ -18,7 +18,7 @@ SHIP_CELLS = sum(size for _, size in SHIPS)   # 17
 RESULT_LABEL = {"miss": "🌊 raté", "hit": "💥 touché", "sunk": "☠️ coulé !"}
 
 # Reward shaping du DQN (modifiable)
-R_MISS = 0.0
+R_MISS = -0.1
 R_HIT = 1.0
 R_SUNK = 3.0
 R_WIN = 10.0
