@@ -1,0 +1,60 @@
+📝 Log : logs/train_20261022_190445.txt
+✅ GPU actif (1×) : /physical_device:GPU:0
+🆕 Initialisation : réseau neuf
+args off :  0
+Phase online started
+Traceback (most recent call last):
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 422, in <module>
+    train_dqn(args)
+    ~~~~~~~~~^^^^^^
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 299, in train_dqn
+    train_batch(model, target, buf.sample(BATCH_SIZE))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 216, in train_batch
+    model.train_on_batch(states, q)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/keras/src/backend/tensorflow/trainer.py", line 629, in train_on_batch
+    logs = self.train_function(data())
+  File "/opt/python/lib/python3.13/site-packages/keras/src/backend/tensorflow/trainer.py", line 249, in function
+    outputs = one_step_on_data(data)
+  File "/opt/python/lib/python3.13/site-packages/keras/src/backend/tensorflow/trainer.py", line 125, in wrapper
+    result = step_func(converted_data)
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/util/traceback_utils.py", line 164, in error_handler
+    return fn(*args, **kwargs)
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 833, in __call__
+    result = self._call(*args, **kwds)
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py", line 906, in _call
+    return tracing_compilation.call_function(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        args, kwds, self._no_variable_creation_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py", line 139, in call_function
+    return function._call_flat(  # pylint: disable=protected-access
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        flat_inputs, captured_inputs=function.captured_inputs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/concrete_function.py", line 1322, in _call_flat
+    return self._inference_function.call_preflattened(args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/atomic_function.py", line 216, in call_preflattened
+    flat_outputs = self.call_flat(*args)
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/polymorphic_function/atomic_function.py", line 251, in call_flat
+    outputs = self._bound_context.call_function(
+        self.name,
+        list(args),
+        len(self.function_type.flat_outputs),
+    )
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/context.py", line 1688, in call_function
+    outputs = execute.execute(
+        name.decode("utf-8"),
+    ...<3 lines>...
+        ctx=self,
+    )
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/eager/execute.py", line 53, in quick_execute
+    tensors = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
+                                        inputs, attrs, num_outputs)
+KeyboardInterrupt

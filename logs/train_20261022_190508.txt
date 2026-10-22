@@ -1,0 +1,11 @@
+📝 Log : logs/train_20261022_190508.txt
+✅ GPU actif (1×) : /physical_device:GPU:0
+🆕 Initialisation : réseau neuf
+Traceback (most recent call last):
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 422, in <module>
+    train_dqn(args)
+    ~~~~~~~~~^^^^^^
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 261, in train_dqn
+    print("args off : ", args.offline-epochs)
+                         ^^^^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'offline'

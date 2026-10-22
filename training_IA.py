@@ -25,7 +25,7 @@ Usage :
     python training_IA.py --placement-only         # que la régression
     python training_IA.py --offline-epochs 0       # sauter le pré-entraînement offline
     python training_IA.py --upload                 # pousser les .keras sur S3 ensuite
-    python training_IA.py --episodes 100 --upload
+    python training_IA.py --offline-epochs 3 --episodes 100 --upload --fresh
 
 Deps : tensorflow, numpy, pandas, pyarrow, boto3 (image Onyxia TF-GPU).
 
@@ -59,7 +59,7 @@ MODEL_DIR = "models"
 LOG_DIR = "logs"
 GAMMA = 0.99          # 0.95
 BATCH_SIZE = 64
-BUFFER_SIZE = 200_000
+BUFFER_SIZE = 100_000
 TARGET_SYNC = 1_000       # steps entre chaque copie model → target
 EPS_START = 1.0
 EPS_MIN = 0.05

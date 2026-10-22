@@ -1,0 +1,36 @@
+📝 Log : logs/train_20261022_185719.txt
+✅ GPU actif (1×) : /physical_device:GPU:0
+🆕 Initialisation : réseau neuf
+Phase online started
+Traceback (most recent call last):
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 421, in <module>
+    train_dqn(args)
+    ~~~~~~~~~^^^^^^
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 298, in train_dqn
+    train_batch(model, target, buf.sample(BATCH_SIZE))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/onyxia/work/test_onyxia/training_IA.py", line 210, in train_batch
+    next_q = target.predict(next_flat.reshape(-1, GRID, GRID, 1), verbose=0)
+  File "/opt/python/lib/python3.13/site-packages/keras/src/utils/traceback_utils.py", line 117, in error_handler
+    return fn(*args, **kwargs)
+  File "/opt/python/lib/python3.13/site-packages/keras/src/backend/tensorflow/trainer.py", line 584, in predict
+    for begin_step, end_step, iterator in epoch_iterator:
+                                          ^^^^^^^^^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/keras/src/backend/tensorflow/trainer.py", line 765, in __next__
+    return next(self._epoch_iterator)
+  File "/opt/python/lib/python3.13/site-packages/keras/src/trainers/epoch_iterator.py", line 125, in _enumerate_iterator
+    self._current_iterator = iter(self._get_iterator())
+                             ~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/data/ops/dataset_ops.py", line 501, in __iter__
+    return iterator_ops.OwnedIterator(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/data/ops/iterator_ops.py", line 709, in __init__
+    self._create_iterator(dataset)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/data/ops/iterator_ops.py", line 748, in _create_iterator
+    gen_dataset_ops.make_iterator(ds_variant, self._iterator_resource)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/python/lib/python3.13/site-packages/tensorflow/python/ops/gen_dataset_ops.py", line 3478, in make_iterator
+    _result = pywrap_tfe.TFE_Py_FastPathExecute(
+      _ctx, "MakeIterator", name, dataset, iterator)
+KeyboardInterrupt

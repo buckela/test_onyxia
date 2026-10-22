@@ -1,0 +1,5 @@
+📝 Log : logs/train_20261022_190905.txt
+✅ GPU actif (1×) : /physical_device:GPU:0
+🆕 Initialisation : réseau neuf
+gold/ml_dataset : 2 fichier(s) parquet
+Offline : 1379954 transitions, 3 epoch(s)
