@@ -34,8 +34,10 @@ Point de vigilance ML : l'encodage scalaire ordinal (0 < 1 < 2 < 3) fait croire 
 import argparse
 import os
 import random
+import sys
 import tempfile
 from collections import deque
+from datetime import datetime
 
 import boto3
 import numpy as np
@@ -54,6 +56,7 @@ SHOOTER_NAME_DQN = "dqn2_shooter.keras"
 PLACEMENT_NAME = "placement_regressor.keras"
 
 MODEL_DIR = "models"
+LOG_DIR = "logs"
 GAMMA = 0.99          # 0.95
 BATCH_SIZE = 64
 BUFFER_SIZE = 200_000
@@ -81,6 +84,36 @@ def configure_gpu() -> None:
     else:
         print("⚠️  Aucun GPU visible — entraînement CPU "
               "(vérifie que tu es bien sur l'image vscode-tensorflow-GPU)")
+
+
+# ==================== LOGGING FICHIER ====================
+
+class _Tee:
+    """Duplique stdout/stderr vers un fichier, en flushant à chaque écriture.
+    Si le service Onyxia redémarre ou que la session shell se perd, le log
+    complet reste sur disque (et peut être poussé sur S3 avec --upload)."""
+
+    def __init__(self, path: str):
+        self.file = open(path, "w", encoding="utf-8")
+        self.stream = sys.__stdout__
+
+    def write(self, data):
+        self.stream.write(data)
+        self.file.write(data)
+        self.file.flush()          # chaque ligne survit à un crash
+
+    def flush(self):
+        self.stream.flush()
+        self.file.flush()
+
+
+def start_logging() -> str:
+    """Redirige stdout/stderr vers logs/train_<timestamp>.txt. Renvoie le path."""
+    os.makedirs(LOG_DIR, exist_ok=True)
+    path = os.path.join(LOG_DIR, f"train_{datetime.now():%Y%m%d_%H%M%S}.txt")
+    sys.stdout = sys.stderr = _Tee(path)
+    print(f"📝 Log : {path}")
+    return path
 
 
 # ==================== DONNÉES S3 ====================
@@ -352,6 +385,14 @@ def upload_models() -> None:
             print(f"✅ {name} → S3")
 
 
+def upload_log(log_path: str) -> None:
+    """Copie le log d'entraînement vers s3://<bucket>/bataille-navale/logs/."""
+    s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
+    key = f"bataille-navale/logs/{os.path.basename(log_path)}"
+    s3.upload_file(log_path, config.S3_BUCKET, key)
+    print(f"✅ log → s3://{config.S3_BUCKET}/{key}")
+
+
 # ==================== MAIN ====================
 
 if __name__ == "__main__":
@@ -370,6 +411,7 @@ if __name__ == "__main__":
                     help="ignorer les checkpoints locaux (réseau neuf)")
     args = ap.parse_args()
 
+    log_path = start_logging()   # tout stdout/stderr part aussi dans le fichier
     os.makedirs(MODEL_DIR, exist_ok=True)
     configure_gpu()
 
@@ -380,3 +422,4 @@ if __name__ == "__main__":
     #train_placement()
     if args.upload:
         upload_models()
+        upload_log(log_path)
