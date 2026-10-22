@@ -50,11 +50,13 @@ SHOOTER_NAME_DQN = "dqn2_shooter.keras"
 PLACEMENT_NAME = "placement_regressor.keras"
 
 MODEL_DIR = "models"
-GAMMA = 0.95
+GAMMA = 0.99          # 0.95
 BATCH_SIZE = 64
-BUFFER_SIZE = 50_000
-TARGET_SYNC = 200          # steps entre chaque copie model → target
+BUFFER_SIZE = 100_000
+TARGET_SYNC = 1_000       # steps entre chaque copie model → target
+EPS_START = 1.0
 EPS_MIN = 0.05
+LEARNING_RATE = 0.0003
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")   # logs TF moins verbeux
 
@@ -224,7 +226,7 @@ def train_dqn(args) -> keras.Model:
 
     # ---------- Phase online : self-play dans l'environnement ----------
     env = BattleshipEnv()
-    epsilon = 0.3 if args.offline_epochs > 0 else 1.0
+    epsilon = EPS_START   # 0.3 if args.offline_epochs > 0 else 1.0
     decay = (epsilon - EPS_MIN) / max(1, int(args.episodes * 0.7))
     steps = 0
     for ep in range(args.episodes):

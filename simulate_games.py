@@ -29,6 +29,7 @@ import time
 import uuid
 
 import game
+import game_logic
 import kafka_utils
 
 logger = logging.getLogger("bataille.simulation")
@@ -38,7 +39,7 @@ KNOWN_POLICIES = ("random_v1", "heuristic_v1", "tensor_v1")
 # Corpus équilibré : 50% r-vs-h (signal qualité), 25% h-vs-h (états experts),
 # 25% r-vs-r (exploration non biaisée)
 MIX = [("random_v1", "heuristic_v1"),
-       ("random_v1", "heuristic_v1"),
+       ("heuristic_v1", "random_v1"),
        ("heuristic_v1", "heuristic_v1"),
        ("random_v1", "random_v1")]
 
@@ -46,14 +47,12 @@ MIX = [("random_v1", "heuristic_v1"),
 def choose_shot(policy: str, my_shots: dict) -> tuple[int, int]:
     """Prochain tir selon la policy. Toute nouvelle policy s'ajoute ici."""
     if policy == "heuristic_v1":
-        return game.ai_shot(my_shots)          # la vraie heuristique du jeu
+        return game_logic.heuristic_shot(my_shots)          # la vraie heuristique du jeu
     if policy == "tensor_v1":
         from use_IA import tensor_shot         # lazy : TF requis seulement si utilisé
         return tensor_shot(my_shots)
     # random_v1 : tir purement aléatoire
-    options = [(x, y) for x in range(GRID) for y in range(GRID)
-               if (x, y) not in my_shots]
-    return random.choice(options)
+    return game_logic.random_shot(my_shots)
 
 
 def simulate_game(policy_a: str, policy_b: str, first: int = 0) -> str:
