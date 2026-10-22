@@ -86,7 +86,8 @@ def main() -> None:
     (clean_boards(boards).write.mode("overwrite").partitionBy("date")
      .parquet(zone("silver", "game_boards")))
 
-    print(f"✅ silver : {enriched.count()} tirs, {outcomes.count()} parties terminées")
+    # Pas de count() sur `enriched` : il recalculerait fenêtre + jointure
+    print(f"✅ silver : {outcomes.count()} parties terminées — écriture OK")
 
 
 if __name__ == "__main__":

@@ -107,8 +107,10 @@ def build_placements(spark):
         .select("game_id", "player", col("s.x").alias("x"), col("s.y").alias("y"))
     )
     c, m = cells.alias("c"), moves.alias("m")
+    # broadcast du côté cells (parties × 17 cases ≈ quelques Mo) : évite de
+    # shuffler la table des tirs (1,4 M lignes)
     damage = (
-        c.join(m, (col("c.game_id") == col("m.game_id"))
+        m.join(F.broadcast(c), (col("c.game_id") == col("m.game_id"))
                & (col("c.x") == col("m.x")) & (col("c.y") == col("m.y"))
                & (col("c.player") != col("m.player")))
         .groupBy(col("c.game_id").alias("game_id"), col("c.player").alias("player"))
@@ -140,9 +142,12 @@ def main() -> None:
     spark.sparkContext.setLogLevel("WARN")
 
     # Dataset 1 : où TIRER (state → action → outcome)
+    # select minimal AVANT le groupBy : chaque colonne en moins allège le shuffle
     moves = (
         spark.read.parquet(zone("silver", "game_moves"))
         .filter(col("winner").isNotNull())   # parties terminées uniquement
+        .select("game_id", "player", "mode", "policy",
+                "turn", "x", "y", "result", "win")
     )
 
     dataset = (
@@ -158,8 +163,8 @@ def main() -> None:
     (placements.write.mode("overwrite").partitionBy("mode")
      .parquet(zone("gold", "placements")))
 
-    print(f"✅ gold : {dataset.count()} exemples de tirs, "
-          f"{placements.count()} placements")
+    # Pas de .count() ici : il relancerait tout le calcul une 2ᵉ fois
+    print("✅ gold : ml_dataset + placements écrits")
 
 
 if __name__ == "__main__":

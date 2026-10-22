@@ -47,6 +47,17 @@ def get_spark(app_name: str) -> SparkSession:
         .config("spark.hadoop.fs.s3a.session.token", os.getenv("AWS_SESSION_TOKEN", ""))
         .config("spark.hadoop.fs.s3a.aws.credentials.provider",
                 "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider")
+        # Ressources (OOM 137 = heap + overhead > limite du pod K8s).
+        # Ajustable par variables d'env selon les ressources du service Onyxia.
+        .config("spark.executor.memory", os.getenv("SPARK_EXECUTOR_MEMORY", "3g"))
+        .config("spark.executor.memoryOverhead",
+                os.getenv("SPARK_EXECUTOR_MEMORY_OVERHEAD", "1g"))
+        .config("spark.driver.memory", os.getenv("SPARK_DRIVER_MEMORY", "2g"))
+        # Moins de partitions = moins d'overhead mémoire par tâche
+        .config("spark.sql.shuffle.partitions",
+                os.getenv("SPARK_SHUFFLE_PARTITIONS", "64"))
+        # Arrow accélère fortement applyInPandas (gold)
+        .config("spark.sql.execution.arrow.pyspark.enabled", "true")
         .getOrCreate()
     )
 
