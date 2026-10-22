@@ -19,9 +19,9 @@ import random
 import numpy as np
 from tensorflow import keras
 
-from game_logic import (GRID, SHIP_CELLS, BattleshipEnv, all_sunk, cell_to_xy,
-                        grid_to_features, grid_to_ships, heuristic_shot,
-                        random_grid, shot_result)
+from game_logic import (GRID, SHIP_CELLS, STATE_SCALE, BattleshipEnv, all_sunk,
+                        cell_to_xy, grid_to_features, grid_to_ships,
+                        heuristic_shot, random_grid, shot_result)
 
 MODEL_DIR = "models"
 SHOOTER_NAME_DQN = "dqn2_shooter.keras"
@@ -57,7 +57,7 @@ def tensor_shot(shots: dict) -> tuple[int, int]:
     global _shooter
     if _shooter is None:
         _shooter = _load(SHOOTER_PATH, "shooter")
-    state = np.array(grid_to_features({}, shots), dtype=np.float32) / 2.0
+    state = np.array(grid_to_features({}, shots), dtype=np.float32) / STATE_SCALE
     return cell_to_xy(greedy_cell(_shooter, state))
 
 
@@ -69,11 +69,11 @@ def evaluate(n_games: int = 100) -> None:
     env = BattleshipEnv()
     solo_turns = []
     for _ in range(n_games):
-        state = np.array(env.reset(), dtype=np.float32) / 2.0
+        state = np.array(env.reset(), dtype=np.float32) / STATE_SCALE
         done = False
         while not done:
             _, _, done, _ = env.step(greedy_cell(model, state))
-            state = np.array(env.state(), dtype=np.float32) / 2.0
+            state = np.array(env.state(), dtype=np.float32) / STATE_SCALE
         solo_turns.append(env.turns)
 
     # --- Duels vs heuristique ---
@@ -106,7 +106,7 @@ def evaluate(n_games: int = 100) -> None:
 def demo() -> None:
     """Une partie solo commentée coup par coup."""
     env = BattleshipEnv()
-    state = np.array(env.reset(), dtype=np.float32) / 2.0
+    state = np.array(env.reset(), dtype=np.float32) / STATE_SCALE
     done = False
     while not done:
         cell = greedy_cell(_load(SHOOTER_PATH, "shooter"), state)
@@ -117,7 +117,7 @@ def demo() -> None:
         else:
             info_p = info['result']
         print(f"tour {env.turns:>2} → ({x},{y}) : {info_p}")
-        state = np.array(env.state(), dtype=np.float32) / 2.0
+        state = np.array(env.state(), dtype=np.float32) / STATE_SCALE
     print(f"✅ Flotte coulée en {env.turns} tirs")
 
 

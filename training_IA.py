@@ -28,6 +28,8 @@ Usage :
     python training_IA.py --episodes 100 --upload
 
 Deps : tensorflow, numpy, pandas, pyarrow, boto3 (image Onyxia TF-GPU).
+
+Point de vigilance ML : l'encodage scalaire ordinal (0 < 1 < 2 < 3) fait croire au CNN que "coulé" est une quantité plus grande que "touché" — alors que ce sont des états qualitatifs différents. Ça marche (le réseau apprend à s'adapter), mais l'encodage idéal pour un CNN serait du one-hot par canal : entrée (10, 10, 4) avec un canal par état. Chaque filtre réagit alors à "est-ce un touché ?" plutôt qu'à "valeur ≈ ⅔". C'est le prochain upgrade naturel (et rétro-compatible : la conversion scalaire → canaux se fait dans build_transitions côté offline). À considérer si les résultats plafonnent — garde d'abord l'encodage actuel pour voir la courbe.
 """
 import argparse
 import os
@@ -39,11 +41,12 @@ import boto3
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from botocore.exceptions import ClientError
 from tensorflow import keras
 
 import config
 from game_logic import (GRID, R_HIT, R_MISS, R_SUNK, R_WIN, SHIP_CELLS,
-                        BattleshipEnv)
+                        STATE_SCALE, BattleshipEnv)
 from use_IA import greedy_cell
 
 SHOOTER_NAME_PRE = "dn_shooter.keras"
@@ -53,7 +56,7 @@ PLACEMENT_NAME = "placement_regressor.keras"
 MODEL_DIR = "models"
 GAMMA = 0.99          # 0.95
 BATCH_SIZE = 64
-BUFFER_SIZE = 100_000
+BUFFER_SIZE = 200_000
 TARGET_SYNC = 1_000       # steps entre chaque copie model → target
 EPS_START = 1.0
 EPS_MIN = 0.05
@@ -112,7 +115,7 @@ def build_transitions(df: pd.DataFrame) -> list[tuple]:
     transitions = []
     for _, g in df.groupby(["game_id", "player"]):
         g = g.sort_values("turn")
-        states = np.array(g["features"].tolist(), dtype=np.float32) / 3.0
+        states = np.array(g["features"].tolist(), dtype=np.float32) / STATE_SCALE
         actions = g["action_cell"].to_numpy()
         hits = g["label_hit"].to_numpy()
         sunk = (g["result"] == "sunk").to_numpy()
@@ -144,7 +147,7 @@ def build_dqn() -> keras.Model:
     x = keras.layers.Dense(256, activation="relu")(x)
     out = keras.layers.Dense(GRID * GRID)(x)   # Q(s, a) pour chaque case
     model = keras.Model(inp, out)
-    model.compile(optimizer=keras.optimizers.Adam(1e-3),
+    model.compile(optimizer=keras.optimizers.Adam(LEARNING_RATE),
                   loss=keras.losses.Huber(), jit_compile=False)
     return model
 
@@ -191,25 +194,32 @@ def evaluate_solo(model, n: int = 50) -> float:
     env = BattleshipEnv()
     turns = []
     for _ in range(n):
-        state = np.array(env.reset(), np.float32) / 3.0
+        state = np.array(env.reset(), np.float32) / STATE_SCALE
         done = False
         while not done:
             _, _, done, _ = env.step(greedy_cell(model, state))
-            state = np.array(env.state(), np.float32) / 3.0
+            state = np.array(env.state(), np.float32) / STATE_SCALE
         turns.append(env.turns)
     return float(np.mean(turns))
 
 
 def train_dqn(args) -> keras.Model:
-    # SHOOTER_NAME_PRE, SHOOTER_NAME_DQN
-    model_wanted = "SHOOTER_NAME_PRE"
+    # Reprise du bon checkpoint : offline → reprendre le pré-entraîné ;
+    # online-only → priorité au DQN affiné, sinon le pré-entraîné, sinon neuf.
     if args.offline_epochs == 0:
-        local = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
+        candidates = [SHOOTER_NAME_DQN, SHOOTER_NAME_PRE]
     else:
-        local = os.path.join(MODEL_DIR, model_wanted)
-    if os.path.exists(local) and 0:
-        model, target = keras.load(local)
+        candidates = [SHOOTER_NAME_PRE]
+    resume_path = next(
+        (os.path.join(MODEL_DIR, n) for n in candidates
+         if os.path.exists(os.path.join(MODEL_DIR, n))), None)
+
+    if resume_path and not args.fresh:
+        print(f"♻️  Reprise depuis {resume_path}")
+        model = keras.models.load_model(resume_path)
+        target = build_dqn()   # recréé puis copié — un seul fichier suffit
     else:
+        print("🆕 Initialisation : réseau neuf")
         model, target = build_dqn(), build_dqn()
     target.set_weights(model.get_weights())
     buf = ReplayBuffer()
@@ -237,16 +247,18 @@ def train_dqn(args) -> keras.Model:
     # ---------- Phase online : self-play dans l'environnement ----------
     print("Phase online started")
     env = BattleshipEnv()
-    epsilon = EPS_START   # 0.3 if args.offline_epochs > 0 else 1.0
+    # Après un pré-entraînement, partir bas : le réseau sait déjà jouer,
+    # inutile de re-explorer massivement (ça dilue ce qu'il vient d'apprendre)
+    epsilon = 0.3 if args.offline_epochs > 0 else EPS_START
     decay = (epsilon - EPS_MIN) / max(1, int(args.episodes * 0.7))
     steps = 0
     for ep in range(args.episodes):
-        state = np.array(env.reset(), np.float32) / 3.0
+        state = np.array(env.reset(), np.float32) / STATE_SCALE
         done = False
         while not done:
             a = act(model, state, epsilon)
             ns, r, done, _ = env.step(a)
-            ns = np.array(ns, np.float32) / 3.0
+            ns = np.array(ns, np.float32) / STATE_SCALE
             buf.add(state, a, np.float32(r), ns, done)
             state = ns
             if len(buf) >= BATCH_SIZE:
@@ -314,16 +326,20 @@ def train_placement() -> keras.Model:
 
 # ==================== S3 ====================
 
-# à faire
 def load_models() -> None:
-    """Tire les .keras de s3://<bucket>/bataille-navale/models/. vers MODEL_DIR"""
+    """Télécharge les .keras depuis s3://<bucket>/bataille-navale/models/."""
     s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
+    os.makedirs(MODEL_DIR, exist_ok=True)
     for name in (SHOOTER_NAME_PRE, SHOOTER_NAME_DQN, PLACEMENT_NAME):
+        key = f"bataille-navale/models/{name}"
         local = os.path.join(MODEL_DIR, name)
-        if s3.path.exists(local):
-            s3.download_file(local, config.S3_BUCKET,
-                           f"bataille-navale/models/{name}")
-            print(f"✅ {name} → S3")
+        try:
+            s3.head_object(Bucket=config.S3_BUCKET, Key=key)   # test d'existence
+        except ClientError:
+            print(f"⏭️  {name} absent de S3, ignoré")
+            continue
+        s3.download_file(config.S3_BUCKET, key, local)   # (Bucket, Key, Filename)
+        print(f"✅ {name} ← S3")
 
 def upload_models() -> None:
     """Pousse les .keras vers s3://<bucket>/bataille-navale/models/."""
@@ -348,12 +364,17 @@ if __name__ == "__main__":
                     help="n'entraîner que la régression de placement")
     ap.add_argument("--upload", action="store_true",
                     help="pousser les modèles sur S3 après entraînement")
+    ap.add_argument("--download", action="store_true",
+                    help="récupérer les modèles depuis S3 avant entraînement")
+    ap.add_argument("--fresh", action="store_true",
+                    help="ignorer les checkpoints locaux (réseau neuf)")
     args = ap.parse_args()
 
     os.makedirs(MODEL_DIR, exist_ok=True)
     configure_gpu()
 
-    # load_models()
+    if args.download:
+        load_models()
     if not args.placement_only:
         train_dqn(args)
     #train_placement()

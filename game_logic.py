@@ -23,6 +23,12 @@ R_HIT = 1.0
 R_SUNK = 3.0
 R_WIN = 10.0
 
+# Encodage d'état : 0=inconnu, 1=raté, 2=touché, 3=coulé.
+# Diviseur de normalisation → SOURCE UNIQUE DE VÉRITÉ : training_IA.py et
+# use_IA.py DOIVENT utiliser cette constante (entraînement et inférence
+# doivent voir exactement la même échelle d'entrée).
+STATE_SCALE = 3.0
+
 
 # ==================== PLACEMENT ====================
 

@@ -27,7 +27,8 @@ from pyspark.sql.types import ArrayType, IntegerType, StringType, StructField, S
 from spark_utils import get_spark, zone
 
 GRID = 10
-CODE = {"miss": 1, "hit": 2, "sunk": 2}
+# Même encodage que game_logic.grid_to_features : 0=inconnu, 1=raté, 2=touché, 3=coulé
+CODE = {"miss": 1, "hit": 2, "sunk": 3}
 
 GOLD_SCHEMA = StructType([
     StructField("game_id", StringType()),
