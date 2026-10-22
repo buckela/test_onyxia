@@ -24,7 +24,7 @@ from game_logic import (GRID, SHIP_CELLS, BattleshipEnv, all_sunk, cell_to_xy,
                         random_grid, shot_result)
 
 MODEL_DIR = "models"
-SHOOTER_NAME_DQN = "dn_shooter.keras"
+SHOOTER_NAME_DQN = "dqn2_shooter.keras"
 PLACEMENT_NAME = "placement_regressor.keras"
 SHOOTER_PATH = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
 PLACEMENT_PATH = os.path.join(MODEL_DIR, PLACEMENT_NAME)
@@ -112,7 +112,11 @@ def demo() -> None:
         cell = greedy_cell(_load(SHOOTER_PATH, "shooter"), state)
         x, y = cell_to_xy(cell)
         _, _, done, info = env.step(cell)
-        print(f"tour {env.turns:>2} → ({x},{y}) : {info['result']}")
+        if (info['result'] == "miss"):
+            info_p = "m" 
+        else:
+            info_p = info['result']
+        print(f"tour {env.turns:>2} → ({x},{y}) : {info_p}")
         state = np.array(env.state(), dtype=np.float32) / 2.0
     print(f"✅ Flotte coulée en {env.turns} tirs")
 

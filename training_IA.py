@@ -25,6 +25,7 @@ Usage :
     python training_IA.py --placement-only         # que la régression
     python training_IA.py --offline-epochs 0       # sauter le pré-entraînement offline
     python training_IA.py --upload                 # pousser les .keras sur S3 ensuite
+    python training_IA.py --episodes 100 --upload
 
 Deps : tensorflow, numpy, pandas, pyarrow, boto3 (image Onyxia TF-GPU).
 """
@@ -200,7 +201,16 @@ def evaluate_solo(model, n: int = 50) -> float:
 
 
 def train_dqn(args) -> keras.Model:
-    model, target = build_dqn(), build_dqn()
+    # SHOOTER_NAME_PRE, SHOOTER_NAME_DQN
+    model_wanted = "SHOOTER_NAME_PRE"
+    if args.offline_epochs == 0:
+        local = os.path.join(MODEL_DIR, SHOOTER_NAME_DQN)
+    else:
+        local = os.path.join(MODEL_DIR, model_wanted)
+    if os.path.exists(local) and 0:
+        model, target = keras.load(local)
+    else:
+        model, target = build_dqn(), build_dqn()
     target.set_weights(model.get_weights())
     buf = ReplayBuffer()
 
@@ -225,6 +235,7 @@ def train_dqn(args) -> keras.Model:
             f"{evaluate_solo(model, 100):.1f} tirs (random ≈ 95, heuristic ≈ 55-60)")
 
     # ---------- Phase online : self-play dans l'environnement ----------
+    print("Phase online started")
     env = BattleshipEnv()
     epsilon = EPS_START   # 0.3 if args.offline_epochs > 0 else 1.0
     decay = (epsilon - EPS_MIN) / max(1, int(args.episodes * 0.7))
@@ -259,6 +270,7 @@ def train_dqn(args) -> keras.Model:
 # ==================== RÉGRESSION PLACEMENT ====================
 
 def train_placement() -> keras.Model:
+    # PLACEMENT_NAME
     df = load_gold_table("placements")
     print(f"Placement : {len(df)} lignes")
     if len(df) < 200:
@@ -302,6 +314,17 @@ def train_placement() -> keras.Model:
 
 # ==================== S3 ====================
 
+# à faire
+def load_models() -> None:
+    """Tire les .keras de s3://<bucket>/bataille-navale/models/. vers MODEL_DIR"""
+    s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
+    for name in (SHOOTER_NAME_PRE, SHOOTER_NAME_DQN, PLACEMENT_NAME):
+        local = os.path.join(MODEL_DIR, name)
+        if s3.path.exists(local):
+            s3.download_file(local, config.S3_BUCKET,
+                           f"bataille-navale/models/{name}")
+            print(f"✅ {name} → S3")
+
 def upload_models() -> None:
     """Pousse les .keras vers s3://<bucket>/bataille-navale/models/."""
     s3 = boto3.client("s3", endpoint_url=config.S3_ENDPOINT)
@@ -319,7 +342,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Entraînement IA bataille navale")
     ap.add_argument("--episodes", type=int, default=2000,
                     help="épisodes de self-play DQN")
-    ap.add_argument("--offline-epochs", type=int, default=3,
+    ap.add_argument("--offline-epochs", type=int, default=0,
                     help="epochs de pré-entraînement sur gold/ml_dataset (0 = skip)")
     ap.add_argument("--placement-only", action="store_true",
                     help="n'entraîner que la régression de placement")
@@ -330,6 +353,7 @@ if __name__ == "__main__":
     os.makedirs(MODEL_DIR, exist_ok=True)
     configure_gpu()
 
+    # load_models()
     if not args.placement_only:
         train_dqn(args)
     #train_placement()
