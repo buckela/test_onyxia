@@ -3,3 +3,11 @@
 🆕 Initialisation : réseau neuf
 gold/ml_dataset : 2 fichier(s) parquet
 Offline : 1379954 transitions, 1 epoch(s)
+  epoch 1/1 — solo moyen : 63.0 tirs
+Pré-learning sauvegardé : models/dn1epoch_shooter.keras — solo moyen final : 66.1 tirs (random ≈ 95, heuristic ≈ 55-60)
+Phase online started
+DQN sauvegardé : models/dqn1epoch_shooter.keras — solo moyen final : 68.3 tirs (random ≈ 95, heuristic ≈ 55-60)
+✅ dn1epoch_shooter.keras → S3
+✅ dqn1epoch_shooter.keras → S3
+✅ placement_regressor.keras → S3
+✅ log → s3://buckela/bataille-navale/logs/train_20261023_065148.txt
