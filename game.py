@@ -8,14 +8,17 @@ La logique pure (grille, tirs, placements) vit dans game_logic.py, module
 partagé avec les scripts headless (simulation, entraînement, inférence).
 """
 import time
-
 import streamlit as st
-
+import numpy as np
+from tensorflow import keras
+import os
 import bdd
-from game_logic import (GRID, RESULT_LABEL, SHIPS, all_sunk, can_place,
+from game_logic import (GRID, cell_to_xy, STATE_SCALE, RESULT_LABEL,
+                        SHIPS, all_sunk, can_place,
                         grid_to_features, grid_to_ships, heuristic_shot,
-                        random_shot, dqn1_shot, random_grid,
+                        random_shot, random_grid,
                         ships_to_grid, shot_result)
+
 
 # Cases déjà tirées : bien visibles (gros symboles, pas de faible nuance)
 CELL_MISS = "❌"   # tir raté
@@ -23,7 +26,12 @@ CELL_HIT = "💥"    # bateau touché
 CELL_SUNK = "☠️"   # bateau coulé
 CELL_SHIP = "🚢"   # ton bateau intact (visible sur TA grille)
 CELL_SEA = "🟦"    # case d'eau non tirée (visible sur TA grille)
-CELL_UNKNOWN = "🟦" # case ennemie cliquable
+CELL_UNKNOWN = "🟦"    # case ennemie cliquable
+
+MODEL_DIR = "models"
+
+_shooter = None
+_regressor = None
 
 # CSS injecté : boutons de grille plus grands et lisibles
 _GRID_CSS = """
@@ -50,6 +58,7 @@ STATE_KEYS = ["phase", "vs_ai", "placing", "orientation", "my_grid", "enemy_grid
 
 # ================= ÉTAT SESSION =================
 
+
 def init_game(vs_ai: bool = True):
     ss = st.session_state
     ss.phase = "placement"
@@ -67,6 +76,36 @@ def init_game(vs_ai: bool = True):
     if vs_ai:
         ss.enemy_grid = random_grid()
 
+
+# ==================== HELPERS ====================
+
+def greedy_cell(model: keras.Model, state: np.ndarray) -> int:
+    """Argmax Q sur les cases encore inconnues (masking des actions invalides)."""
+    q = model.predict(state.reshape(1, GRID, GRID, 1), verbose=0)[0]
+    q = np.where(state == 0, q, -1e9)   # cases connues interdites
+    return int(np.argmax(q))
+
+
+@st.cache_resource
+def _load(path: str, name: str) -> keras.Model:
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"{path} introuvable — entraîne d'abord (training_IA.py) "
+            f"ou récupère le modèle : python use_IA.py --download")
+    return keras.models.load_model(path)
+
+
+# ==================== TIRS (DQN) ====================
+
+def tensor_shot(shots: dict, name: str) -> tuple[int, int]:
+    """Policy 'tensor_v1' : état → DQN → meilleure case inconnue."""
+    global _shooter
+    if _shooter is None:
+        _shooter = _load(os.path.join(MODEL_DIR, name), "shooter")
+    state = np.array(grid_to_features({}, shots), dtype=np.float32) / STATE_SCALE
+    return cell_to_xy(greedy_cell(_shooter, state))
+
+
 def enter_pvp_game(game_id: str, opponent: str):
     """Prépare une partie PvP ; recharge le plateau si on se reconnecte."""
     init_game(vs_ai=False)
@@ -76,8 +115,10 @@ def enter_pvp_game(game_id: str, opponent: str):
         st.session_state.placing = len(SHIPS)
         st.session_state.phase = "battle"
 
+
 def log(msg: str):
     st.session_state.log.append(f"[tour {st.session_state.turn}] {msg}")
+
 
 def _poll(seconds: float = 2.0):
     """Rafraîchissement par polling serveur : fonctionne aussi dans un onglet
@@ -86,6 +127,7 @@ def _poll(seconds: float = 2.0):
     st.rerun()
 
 # ================= RENDU =================
+
 
 def _cell_label(shot: str | None, has_ship: bool, show_ship: bool) -> str:
     """Libellé d'une case, bien contrasté entre cases tirées et non tirées."""
@@ -98,6 +140,7 @@ def _cell_label(shot: str | None, has_ship: bool, show_ship: bool) -> str:
     if show_ship:
         return CELL_SHIP if has_ship else CELL_SEA
     return CELL_UNKNOWN
+
 
 def _render_grid(shots: dict, grid: dict, show_ships: bool,
                  key_prefix: str, clickable: bool = False, on_click=None):
@@ -115,6 +158,7 @@ def _render_grid(shots: dict, grid: dict, show_ships: bool,
                 c.button(label, key=f"{key_prefix}{x}-{y}", disabled=True,
                          use_container_width=True)
 
+
 def _side_panel(journal: list[str]):
     """Ta flotte + journal. Grille en boutons (plus grande que le dataframe)."""
     st.subheader("🛡️ Ta flotte")
@@ -124,25 +168,30 @@ def _side_panel(journal: list[str]):
     for msg in reversed(journal[-10:]):
         st.caption(msg)
 
+
 def _exit_button(on_exit):
     if on_exit and st.button("🏠 Retour au menu"):
         on_exit()
         st.rerun()
+
 
 def ai_shot(shots: dict | None = None) -> tuple[int, int]:
     """Prochain tir de l'IA. Délègue à game_logic.heuristic_shot ;
     par défaut lit la session Streamlit (comportement du jeu)."""
     if shots is None:
         shots = st.session_state.enemy_shots
-    match st.session_state.IA_policy :
+    match st.session_state.IA_policy:
         case "heuristic_v1":
             return heuristic_shot(shots)
         case "random_v1":
             return random_shot(shots)
-        case "tensor_v1":
-            return dqn1_shot(shots)
-    
+        case "dqn1_10000":
+            return tensor_shot(shots, "dn1epoch_shooter.keras")
+        case "dqn3_10000":
+            return tensor_shot(shots, "dn_shooter.keras")
+
 # ================= PHASE PLACEMENT =================
+
 
 def render_placement(on_ships_placed):
     ss = st.session_state
@@ -179,6 +228,7 @@ def render_placement(on_ships_placed):
 
     _render_grid({}, ss.my_grid, True, "place_", clickable=True, on_click=try_place)
 
+
 def _finish_placement(on_ships_placed):
     ss = st.session_state
     ss.phase = "battle"
@@ -191,6 +241,7 @@ def _finish_placement(on_ships_placed):
     ss.place_policy = "human"
 
 # ================= PHASE BATAILLE — VS IA =================
+
 
 def _render_ai_battle(on_shot, on_finish, on_exit):
     ss = st.session_state
@@ -235,6 +286,7 @@ def _render_ai_battle(on_shot, on_finish, on_exit):
         _side_panel(ss.log)
 
 # ================= PHASE BATAILLE — PVP =================
+
 
 def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
     ss = st.session_state
@@ -292,6 +344,7 @@ def _render_pvp_battle(fetch_state, resolve_shot, on_exit):
         _poll()
 
 # ================= POINT D'ENTRÉE =================
+
 
 def render(*, on_shot=None, on_finish=None, on_ships_placed=None,
            fetch_state=None, resolve_shot=None, on_exit=None):
