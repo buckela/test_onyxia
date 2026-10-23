@@ -27,8 +27,6 @@ Usage :
     python training_IA.py --upload                 # pousser les .keras sur S3 ensuite
     python training_IA.py --offline-epochs 3 --episodes 100 --upload --fresh
 
-Deps : tensorflow, numpy, pandas, pyarrow, boto3 (image Onyxia TF-GPU).
-
 Point de vigilance ML : l'encodage scalaire ordinal (0 < 1 < 2 < 3) fait croire au CNN que "coulé" est une quantité plus grande que "touché" — alors que ce sont des états qualitatifs différents. Ça marche (le réseau apprend à s'adapter), mais l'encodage idéal pour un CNN serait du one-hot par canal : entrée (10, 10, 4) avec un canal par état. Chaque filtre réagit alors à "est-ce un touché ?" plutôt qu'à "valeur ≈ ⅔". C'est le prochain upgrade naturel (et rétro-compatible : la conversion scalaire → canaux se fait dans build_transitions côté offline). À considérer si les résultats plafonnent — garde d'abord l'encodage actuel pour voir la courbe.
 """
 import argparse
@@ -51,8 +49,8 @@ from game_logic import (GRID, R_HIT, R_MISS, R_SUNK, R_WIN, SHIP_CELLS,
                         STATE_SCALE, BattleshipEnv)
 from use_IA import greedy_cell
 
-SHOOTER_NAME_PRE = "dn_shooter.keras"
-SHOOTER_NAME_DQN = "dqn2_shooter.keras"
+SHOOTER_NAME_PRE = "dn1epoch_shooter.keras"
+SHOOTER_NAME_DQN = "dqn1epoch_shooter.keras"
 PLACEMENT_NAME = "placement_regressor.keras"
 
 MODEL_DIR = "models"
