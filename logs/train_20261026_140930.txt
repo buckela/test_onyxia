@@ -1,0 +1,5 @@
+📝 Log : logs/train_20261026_140930.txt
+✅ GPU actif (1×) : /physical_device:GPU:0
+♻️  Reprise depuis models/dn1epoch_shooter.keras
+gold/ml_dataset : 4 fichier(s) parquet
+Offline : 1818386 transitions, 1 epoch(s)

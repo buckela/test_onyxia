@@ -238,7 +238,7 @@ def train_dqn(args) -> keras.Model:
     # Reprise du bon checkpoint : offline → reprendre le pré-entraîné ;
     # online-only → priorité au DQN affiné, sinon le pré-entraîné, sinon neuf.
     if args.offline_epochs == 0:
-        candidates = [SHOOTER_NAME_DQN, SHOOTER_NAME_PRE]
+        candidates = [SHOOTER_NAME_DQN]
     else:
         candidates = [SHOOTER_NAME_PRE]
     resume_path = next(

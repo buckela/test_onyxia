@@ -68,13 +68,13 @@ python pipeline_batch.py --interval 60    # boucle toutes les heures
 
 # TODO
 
-- /erreur fermeture curseur sql après un temps
-
 - ajout bouton abandon
 
 - qlik traitement statistique -> conversion spark
 
-- opti latence ?
+- calcul biais, variance , esperrance, varaince du bruit
 
-- /responsive téléphone mode pc - landscape
+- phase validation, hyperparamètre
+
+- ppo
 
