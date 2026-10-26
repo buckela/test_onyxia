@@ -78,3 +78,28 @@ python pipeline_batch.py --interval 60    # boucle toutes les heures
 
 - ppo
 
+
+
+
+
+
+
+Le script inclut :
+
+masque des cases déjà tirées, GAE, clipping PPO, limite de gradient et arrêt anticipé sur la divergence KL ;
+validation déterministe sur des flottes fixes jamais vues pendant l’entraînement, comparée à random et heuristic ;
+moyenne, variance, écart-type et IC 95 % du nombre de tirs ;
+retour, pertes acteur/critique, entropie, KL, clip fraction et explained variance ;
+logs texte et CSV, plus TensorBoard ; --upload envoie le meilleur modèle et les logs sur S3.
+Pour suivre le gap train/validation, l’entraînement utilise un pool fixe de flottes, distinct du pool de validation. Ce gap est un indicateur d’overfitting, pas une décomposition exacte du biais et de la variance du modèle. La variance affichée mesure la dispersion des tirs selon les flottes testées.
+
+Commence par un petit essai sur le service GPU :
+python training_IA_ppo.py --timesteps 20000 --eval-episodes 50
+
+Puis, si tout tourne, augmente le budget :
+python training_IA_ppo.py --timesteps 500000 --eval-episodes 200 --upload
+
+Les métriques s’affichent dans le terminal et sont conservées sous logs/ppo/<run>/. TensorBoard se lance avec :
+tensorboard --logdir logs/ppo
+
+La compilation Python passe. Je n’ai pas pu lancer un entraînement réel ici, car TensorFlow n’est pas installé dans l’environnement local. Le modèle PPO est enregistré séparément sous models/ppo_shooter.keras : il n’est pas directement interchangeable avec le modèle DQN attendu par use_IA.py.
