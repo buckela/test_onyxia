@@ -78,7 +78,7 @@ python pipeline_batch.py --interval 60    # boucle toutes les heures
 
 - ppo
 
-
+- pourcentage de découverte par plus petit bateau restant
 
 
 

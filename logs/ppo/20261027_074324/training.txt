@@ -1,0 +1,8 @@
+✅ GPU : /physical_device:GPU:0
+PPO démarré : 1,000,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 200 flottes ; logs : logs/ppo/20261027_074324
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.
+update    1 | steps    2,048/1,000,000 | retour train=29.14 | tirs train=95.62 | policy=0.0070 value=11.3909 entropy=3.745 KL=0.0155 EV=-0.005 | validation en attente | 26.7s
+update    2 | steps    4,096/1,000,000 | retour train=29.05 | tirs train=96.36 | policy=0.0151 value=3.9544 entropy=3.561 KL=0.0215 EV=0.557 | validation en attente | 22.1s
+update    3 | steps    6,144/1,000,000 | retour train=28.96 | tirs train=96.41 | policy=-0.0099 value=2.4487 entropy=3.504 KL=0.0209 EV=0.443 | validation en attente | 25.5s
+update    4 | steps    8,192/1,000,000 | retour train=28.97 | tirs train=96.09 | policy=-0.0130 value=2.2857 entropy=3.514 KL=0.0188 EV=0.364 | validation en attente | 23.3s
