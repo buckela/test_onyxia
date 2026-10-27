@@ -1,0 +1,4 @@
+✅ GPU : /physical_device:GPU:0
+PPO démarré : 20,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 50 flottes ; logs : logs/ppo/20261027_072959
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.

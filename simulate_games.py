@@ -44,10 +44,8 @@ KNOWN_POLICIES = ("random_v1", "heuristic_v1", "dqn1_10000", "dqn3_10000")
 
 
 MIX = [("random_v1", "dqn1_10000"),
-       ("dqn3_10000", "random_v1"),
-       ("random_v1", "dqn3_10000"),
        ("dqn1_10000", "random_v1"),
-       ("dqn1_10000", "dqn3_10000"),
+       ("dqn1_10000", "dqn1_10000"),
        ("random_v1", "random_v1")]
 
 

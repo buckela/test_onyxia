@@ -6,3 +6,4 @@ numpy
 pyarrow
 streamlit
 psycopg2-binary
+tensorboard

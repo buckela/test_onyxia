@@ -1,0 +1,2 @@
+update,timesteps,train_return_mean,train_shots_mean,policy_loss,value_loss,entropy,approx_kl,clip_fraction,explained_variance,train_eval_shots_mean,validation_shots_mean,validation_shots_std,validation_shots_variance,validation_shots_ci95_low,validation_shots_ci95_high,validation_return_mean,validation_gap_shots,random_shots_mean,heuristic_shots_mean
+1,2048,29.138095219930012,95.61904761904762,0.007005348934658936,11.390869276864189,3.744817239897592,0.01548659972779985,0.154296875,-0.004994630813598633,nan,nan,nan,nan,nan,nan,nan,nan,nan,nan

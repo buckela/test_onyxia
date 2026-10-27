@@ -1,0 +1,19 @@
+✅ GPU : /physical_device:GPU:0
+PPO démarré : 20,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 50 flottes ; logs : logs/ppo/20261027_073208
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.
+update    1 | steps    2,048/20,000 | retour train=29.14 | tirs train=95.62 | policy=0.0070 value=11.3909 entropy=3.745 KL=0.0155 EV=-0.005 | validation en attente | 26.2s
+update    2 | steps    4,096/20,000 | retour train=29.05 | tirs train=96.36 | policy=0.0151 value=3.9544 entropy=3.561 KL=0.0215 EV=0.557 | validation en attente | 20.6s
+update    3 | steps    6,144/20,000 | retour train=28.96 | tirs train=96.41 | policy=-0.0099 value=2.4488 entropy=3.504 KL=0.0209 EV=0.443 | validation en attente | 22.8s
+update    4 | steps    8,192/20,000 | retour train=28.97 | tirs train=96.09 | policy=-0.0141 value=2.1831 entropy=3.520 KL=0.0182 EV=0.365 | validation en attente | 23.2s
+✅ Nouveau meilleur checkpoint : models/ppo_shooter_best.keras
+update    5 | steps   10,240/20,000 | retour train=28.96 | tirs train=96.13 | policy=-0.0207 value=1.5599 entropy=3.523 KL=0.0146 EV=0.437 | train-eval=96.55; val shots=96.16 ±3.78 (IC95 95.11, 97.21); random=95.88, heuristic=62.64 | 162.3s
+update    6 | steps   12,288/20,000 | retour train=28.92 | tirs train=96.25 | policy=-0.0006 value=1.6861 entropy=3.494 KL=0.0191 EV=0.353 | validation en attente | 20.7s
+update    7 | steps   14,336/20,000 | retour train=28.86 | tirs train=96.28 | policy=-0.0054 value=1.6087 entropy=3.467 KL=0.0106 EV=0.208 | validation en attente | 19.9s
+update    8 | steps   16,384/20,000 | retour train=28.78 | tirs train=95.76 | policy=-0.0048 value=1.7325 entropy=3.494 KL=0.0123 EV=0.155 | validation en attente | 19.5s
+update    9 | steps   18,432/20,000 | retour train=28.69 | tirs train=95.85 | policy=0.0030 value=1.6895 entropy=3.448 KL=0.0113 EV=0.063 | validation en attente | 20.5s
+update   10 | steps   20,000/20,000 | retour train=28.74 | tirs train=95.74 | policy=-0.0261 value=1.7233 entropy=3.430 KL=0.0127 EV=0.109 | train-eval=96.61; val shots=96.62 ±3.34 (IC95 95.69, 97.55); random=95.88, heuristic=62.64 | 121.0s
+✅ Dernier modèle : models/ppo_shooter.keras
+✅ Meilleur modèle validation : models/ppo_shooter_best.keras
+📈 CSV : logs/ppo/20261027_073208/metrics.csv
+📊 TensorBoard : tensorboard --logdir logs/ppo
