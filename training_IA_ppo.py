@@ -51,6 +51,16 @@ MODEL_DIR = Path("models")
 LOG_ROOT = Path("logs") / "ppo"
 MODEL_NAME = "ppo_shooter.keras"
 
+
+class ShapedEnv(BattleshipEnv):
+    # La somme des bonus hit/sunk/win est constante par partie : seul le coût des tirs ratés distingue deux policies.
+    rewards = {"miss": -0.1, "hit": 0.0, "sunk": 0.0, "win": 0.0}
+
+    def step(self, cell: int):
+        state, _, done, info = super().step(cell)
+        reward = self.rewards[info["result"]] + (self.rewards["win"] if done else 0.0)
+        return state, reward, done, info
+
 CSV_FIELDS = [
     "update", "timesteps", "train_return_mean", "train_shots_mean",
     "policy_loss", "value_loss", "entropy", "approx_kl",
@@ -298,7 +308,7 @@ def make_validation_fleets(seed: int, count: int) -> list[dict]:
 def run_policy_on_fleet(fleet: dict, policy: str, model: keras.Model | None,
                         seed: int) -> tuple[int, float]:
     """Évalue une policy sur une flotte fixe : tirs et retour réel."""
-    env = BattleshipEnv()
+    env = ShapedEnv()  #BattleshipEnv()
     env.grid = fleet
     env.shots = {}
     env.turns = 0
@@ -377,6 +387,9 @@ def upload_model(path: Path, key: str) -> None:
 def train(args: argparse.Namespace, run_dir: Path) -> Path:
     set_global_seed(args.seed)
     configure_gpu()
+    ShapedEnv.rewards = {"miss": args.r_miss, "hit": args.r_hit,
+                         "sunk": args.r_sunk, "win": args.r_win}
+    print(f"Récompenses PPO : {ShapedEnv.rewards}")
 
     run_dir.mkdir(parents=True, exist_ok=True)
     writer = tf.summary.create_file_writer(str(run_dir / "tensorboard"))
@@ -393,7 +406,7 @@ def train(args: argparse.Namespace, run_dir: Path) -> Path:
         print(f"♻️  Reprise depuis {resume_path} (poids + état de l'optimiseur)")
     else:
         model = build_actor_critic(args.learning_rate)
-    env = BattleshipEnv()
+    env = ShapedEnv()
     state = normalized_observation(env.reset())
     training_fleets = make_validation_fleets(args.seed + 500_000,
                                               args.train_fleet_count)
@@ -547,7 +560,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--minibatch-size", type=int, default=256)
     parser.add_argument("--update-epochs", type=int, default=10)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
-    parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--gamma", type=float, default=1.0)
+    parser.add_argument("--r-miss", type=float, default=-0.1)
+    parser.add_argument("--r-hit", type=float, default=0.0)
+    parser.add_argument("--r-sunk", type=float, default=0.0)
+    parser.add_argument("--r-win", type=float, default=0.0)
     parser.add_argument("--gae-lambda", type=float, default=0.95)
     parser.add_argument("--clip-ratio", type=float, default=0.2)
     parser.add_argument("--entropy-coef", type=float, default=0.01)
