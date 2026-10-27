@@ -385,7 +385,14 @@ def train(args: argparse.Namespace, run_dir: Path) -> Path:
     best_path = MODEL_DIR / "ppo_shooter_best.keras"
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-    model = build_actor_critic(args.learning_rate)
+    if args.resume:
+        resume_path = Path(args.resume)
+        if not resume_path.exists():
+            raise FileNotFoundError(f"Checkpoint introuvable : {resume_path}")
+        model = keras.models.load_model(resume_path)
+        print(f"♻️  Reprise depuis {resume_path} (poids + état de l'optimiseur)")
+    else:
+        model = build_actor_critic(args.learning_rate)
     env = BattleshipEnv()
     state = normalized_observation(env.reset())
     training_fleets = make_validation_fleets(args.seed + 500_000,
@@ -398,6 +405,13 @@ def train(args: argparse.Namespace, run_dir: Path) -> Path:
                                               len(training_fleets))]
     fleet_cursor = 1
     best_validation = float("inf")
+    if args.resume:
+        # Seuil à battre : le checkpoint repris, pas l'infini (sinon il serait écrasé)
+        baseline = evaluate(model, validation_fleets, args.seed, 0)
+        best_validation = baseline["validation_shots_mean"]
+        print(f"Point de départ validation : {best_validation:.2f} tirs "
+              f"(random={baseline['random_shots_mean']:.2f}, "
+              f"heuristic={baseline['heuristic_shots_mean']:.2f})")
     recent_returns: list[float] = []
     recent_shots: list[int] = []
     timesteps = 0
@@ -552,6 +566,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--patience", type=int, default=0,
                         help="arrêt après N validations sans amélioration (0 désactive)")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--resume", nargs="?", const=str(MODEL_DIR / "ppo_shooter_best.keras"),
+                        default=None, metavar="CHEMIN",
+                        help="reprendre depuis un .keras (sans valeur : ppo_shooter_best.keras)")
     parser.add_argument("--log-dir", default=str(LOG_ROOT))
     parser.add_argument("--upload", action="store_true",
                         help="uploader le meilleur checkpoint vers S3")
