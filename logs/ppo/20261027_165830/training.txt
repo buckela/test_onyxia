@@ -1,0 +1,10 @@
+✅ GPU : /physical_device:GPU:0
+♻️  Reprise depuis models/ppo_shooter_best.keras (poids + état de l'optimiseur)
+Point de départ validation : 90.33 tirs (random=95.76, heuristic=63.92)
+PPO démarré : 3,000,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 200 flottes ; logs : logs/ppo/20261027_165830
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.
+update    1 | steps    2,048/3,000,000 | retour train=29.39 | tirs train=93.09 | policy=-0.0189 value=0.1566 entropy=2.210 KL=0.0177 EV=0.918 | validation en attente | 30.1s
+update    2 | steps    4,096/3,000,000 | retour train=29.56 | tirs train=91.41 | policy=-0.0179 value=0.2203 entropy=2.213 KL=0.0132 EV=0.904 | validation en attente | 22.4s
+update    3 | steps    6,144/3,000,000 | retour train=29.33 | tirs train=91.57 | policy=0.0050 value=0.1925 entropy=2.212 KL=0.0111 EV=0.941 | validation en attente | 21.4s
+update    4 | steps    8,192/3,000,000 | retour train=29.42 | tirs train=90.99 | policy=-0.0200 value=0.2355 entropy=2.227 KL=0.0122 EV=0.869 | validation en attente | 26.3s
