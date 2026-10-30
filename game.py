@@ -189,6 +189,8 @@ def ai_shot(shots: dict | None = None) -> tuple[int, int]:
             return tensor_shot(shots, "dn1epoch_shooter.keras")
         case "dqn3_10000":
             return tensor_shot(shots, "dn_shooter.keras")
+        case "dqn_ppo":
+            return tensor_shot(shots, "ppo_shooter_best.keras")
 
 # ================= PHASE PLACEMENT =================
 

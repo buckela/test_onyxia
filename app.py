@@ -76,7 +76,7 @@ if "game_id" not in st.session_state :
                                 game_id=st.session_state.game_id,
                                 players=[pseudo], mode="ai")
             st.rerun()
-        st.session_state.IA_policy = st.selectbox("Type IA :", ["dqn1_10000", "dqn3_10000", "heuristic_v1", "random_v1"], index=0)
+        st.session_state.IA_policy = st.selectbox("Type IA :", ["dqn1_10000", "dqn_ppo", "dqn3_10000", "heuristic_v1", "random_v1"], index=0)
             
     with c2:
         if st.button("👥 Matchmaking"):

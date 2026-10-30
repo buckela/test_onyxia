@@ -97,7 +97,7 @@ Commence par un petit essai sur le service GPU :
 python training_IA_ppo.py --timesteps 20000 --eval-episodes 50
 
 Puis, si tout tourne, augmente le budget :
-python training_IA_ppo.py --timesteps 3000000 --eval-episodes 200 --upload --seed 42 --resume
+python training_IA_ppo.py --timesteps 1000000 --eval-episodes 200 --upload --seed 42 --resume
 python training_IA_ppo.py --timesteps 500000 --eval-episodes 200 --upload
 
 Les métriques s’affichent dans le terminal et sont conservées sous logs/ppo/<run>/. TensorBoard se lance avec :
