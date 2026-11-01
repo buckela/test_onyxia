@@ -1,0 +1,212 @@
+⚠️ Aucun GPU détecté ; entraînement sur CPU
+Récompenses PPO : {'miss': -0.1, 'hit': 0, 'sunk': 0.0, 'win': 0.0}
+♻️  Reprise depuis models/ppo_shooter_best.keras (poids + état de l'optimiseur)
+Point de départ validation : 72.55 tirs (random=95.76, heuristic=63.92)
+PPO démarré : 500,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 200 flottes ; logs : logs/ppo/20261101_085530
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.
+update    1 | steps    2,048/500,000 | retour train=-5.68 | tirs train=73.78 | policy=-0.0570 value=0.0403 entropy=1.772 KL=0.0202 EV=0.960 | validation en attente | 21.7s
+update    2 | steps    4,096/500,000 | retour train=-5.51 | tirs train=72.91 | policy=-0.0399 value=0.0401 entropy=1.817 KL=0.0158 EV=0.965 | validation en attente | 20.7s
+update    3 | steps    6,144/500,000 | retour train=-5.65 | tirs train=74.20 | policy=-0.0237 value=0.0432 entropy=1.812 KL=0.0122 EV=0.964 | validation en attente | 20.2s
+update    4 | steps    8,192/500,000 | retour train=-5.60 | tirs train=74.04 | policy=-0.0260 value=0.0585 entropy=1.832 KL=0.0101 EV=0.950 | validation en attente | 20.6s
+update    5 | steps   10,240/500,000 | retour train=-5.55 | tirs train=73.26 | policy=-0.0255 value=0.0630 entropy=1.810 KL=0.0097 EV=0.945 | train-eval=71.68; val shots=73.00 ±8.67 (IC95 71.79, 74.20); random=95.76, heuristic=63.92 | 188.5s
+update    6 | steps   12,288/500,000 | retour train=-5.54 | tirs train=73.25 | policy=-0.0255 value=0.0591 entropy=1.869 KL=0.0126 EV=0.949 | validation en attente | 20.5s
+update    7 | steps   14,336/500,000 | retour train=-5.45 | tirs train=72.52 | policy=-0.0303 value=0.0627 entropy=1.889 KL=0.0125 EV=0.945 | validation en attente | 20.4s
+update    8 | steps   16,384/500,000 | retour train=-5.39 | tirs train=72.05 | policy=-0.0236 value=0.0526 entropy=1.858 KL=0.0121 EV=0.959 | validation en attente | 20.3s
+update    9 | steps   18,432/500,000 | retour train=-5.41 | tirs train=72.10 | policy=-0.0279 value=0.0482 entropy=1.907 KL=0.0187 EV=0.960 | validation en attente | 20.4s
+update   10 | steps   20,480/500,000 | retour train=-5.41 | tirs train=72.05 | policy=-0.0402 value=0.0512 entropy=1.905 KL=0.0131 EV=0.953 | train-eval=71.44; val shots=73.00 ±9.02 (IC95 71.75, 74.26); random=95.76, heuristic=63.92 | 187.9s
+update   11 | steps   22,528/500,000 | retour train=-5.51 | tirs train=73.22 | policy=-0.0279 value=0.0495 entropy=1.958 KL=0.0125 EV=0.958 | validation en attente | 20.3s
+update   12 | steps   24,576/500,000 | retour train=-5.52 | tirs train=73.53 | policy=-0.0410 value=0.0439 entropy=1.963 KL=0.0085 EV=0.961 | validation en attente | 20.3s
+update   13 | steps   26,624/500,000 | retour train=-5.54 | tirs train=73.51 | policy=-0.0225 value=0.0506 entropy=1.955 KL=0.0101 EV=0.961 | validation en attente | 20.2s
+update   14 | steps   28,672/500,000 | retour train=-5.54 | tirs train=73.37 | policy=-0.0249 value=0.0508 entropy=1.921 KL=0.0119 EV=0.959 | validation en attente | 20.0s
+update   15 | steps   30,720/500,000 | retour train=-5.47 | tirs train=72.46 | policy=-0.0220 value=0.0452 entropy=2.018 KL=0.0078 EV=0.965 | train-eval=71.55; val shots=72.91 ±8.62 (IC95 71.71, 74.10); random=95.76, heuristic=63.92 | 187.7s
+update   16 | steps   32,768/500,000 | retour train=-5.53 | tirs train=72.81 | policy=-0.0324 value=0.0509 entropy=2.024 KL=0.0106 EV=0.955 | validation en attente | 20.7s
+update   17 | steps   34,816/500,000 | retour train=-5.47 | tirs train=72.32 | policy=-0.0427 value=0.0446 entropy=2.041 KL=0.0184 EV=0.958 | validation en attente | 21.1s
+update   18 | steps   36,864/500,000 | retour train=-5.50 | tirs train=72.88 | policy=-0.0326 value=0.0532 entropy=1.977 KL=0.0152 EV=0.953 | validation en attente | 20.6s
+update   19 | steps   38,912/500,000 | retour train=-5.47 | tirs train=73.06 | policy=-0.0246 value=0.0446 entropy=2.049 KL=0.0107 EV=0.960 | validation en attente | 20.4s
+update   20 | steps   40,960/500,000 | retour train=-5.60 | tirs train=74.09 | policy=-0.0337 value=0.0483 entropy=2.062 KL=0.0098 EV=0.955 | train-eval=70.96; val shots=72.86 ±8.52 (IC95 71.68, 74.04); random=95.76, heuristic=63.92 | 187.1s
+update   21 | steps   43,008/500,000 | retour train=-5.62 | tirs train=74.47 | policy=-0.0253 value=0.0594 entropy=2.036 KL=0.0070 EV=0.951 | validation en attente | 20.6s
+update   22 | steps   45,056/500,000 | retour train=-5.70 | tirs train=75.03 | policy=-0.0253 value=0.0637 entropy=2.045 KL=0.0085 EV=0.945 | validation en attente | 20.2s
+update   23 | steps   47,104/500,000 | retour train=-5.71 | tirs train=75.55 | policy=-0.0706 value=0.0443 entropy=2.019 KL=0.0189 EV=0.952 | validation en attente | 22.7s
+update   24 | steps   49,152/500,000 | retour train=-5.67 | tirs train=74.83 | policy=-0.0649 value=0.0362 entropy=2.038 KL=0.0168 EV=0.963 | validation en attente | 21.8s
+update   25 | steps   51,200/500,000 | retour train=-5.62 | tirs train=74.13 | policy=-0.0561 value=0.0510 entropy=2.094 KL=0.0136 EV=0.955 | train-eval=71.62; val shots=72.80 ±8.58 (IC95 71.61, 73.98); random=95.76, heuristic=63.92 | 188.3s
+update   26 | steps   53,248/500,000 | retour train=-5.50 | tirs train=72.62 | policy=-0.0303 value=0.0572 entropy=2.071 KL=0.0139 EV=0.955 | validation en attente | 20.6s
+update   27 | steps   55,296/500,000 | retour train=-5.46 | tirs train=72.48 | policy=-0.0388 value=0.0534 entropy=2.096 KL=0.0191 EV=0.948 | validation en attente | 20.9s
+update   28 | steps   57,344/500,000 | retour train=-5.56 | tirs train=73.38 | policy=-0.0536 value=0.0500 entropy=2.130 KL=0.0165 EV=0.953 | validation en attente | 21.0s
+update   29 | steps   59,392/500,000 | retour train=-5.61 | tirs train=73.68 | policy=-0.0449 value=0.0606 entropy=2.158 KL=0.0148 EV=0.942 | validation en attente | 21.0s
+update   30 | steps   61,440/500,000 | retour train=-5.66 | tirs train=74.46 | policy=-0.0505 value=0.0515 entropy=2.186 KL=0.0092 EV=0.945 | train-eval=71.84; val shots=72.81 ±8.72 (IC95 71.61, 74.02); random=95.76, heuristic=63.92 | 188.4s
+update   31 | steps   63,488/500,000 | retour train=-5.69 | tirs train=75.19 | policy=-0.0413 value=0.0459 entropy=2.219 KL=0.0090 EV=0.960 | validation en attente | 20.7s
+update   32 | steps   65,536/500,000 | retour train=-5.61 | tirs train=74.76 | policy=-0.0499 value=0.0468 entropy=2.213 KL=0.0159 EV=0.958 | validation en attente | 20.9s
+update   33 | steps   67,584/500,000 | retour train=-5.66 | tirs train=74.99 | policy=-0.0542 value=0.0394 entropy=2.186 KL=0.0123 EV=0.968 | validation en attente | 20.6s
+update   34 | steps   69,632/500,000 | retour train=-5.60 | tirs train=74.34 | policy=-0.0256 value=0.0626 entropy=2.213 KL=0.0087 EV=0.951 | validation en attente | 20.0s
+update   35 | steps   71,680/500,000 | retour train=-5.61 | tirs train=74.13 | policy=-0.0380 value=0.0530 entropy=2.199 KL=0.0120 EV=0.956 | train-eval=71.87; val shots=73.02 ±8.89 (IC95 71.79, 74.25); random=95.76, heuristic=63.92 | 191.1s
+update   36 | steps   73,728/500,000 | retour train=-5.60 | tirs train=74.03 | policy=-0.0375 value=0.0613 entropy=2.185 KL=0.0096 EV=0.949 | validation en attente | 21.0s
+update   37 | steps   75,776/500,000 | retour train=-5.66 | tirs train=74.24 | policy=-0.0548 value=0.0502 entropy=2.290 KL=0.0170 EV=0.954 | validation en attente | 21.5s
+update   38 | steps   77,824/500,000 | retour train=-5.73 | tirs train=75.32 | policy=-0.0579 value=0.0343 entropy=2.247 KL=0.0112 EV=0.968 | validation en attente | 21.8s
+update   39 | steps   79,872/500,000 | retour train=-5.76 | tirs train=75.39 | policy=-0.0452 value=0.0463 entropy=2.225 KL=0.0192 EV=0.959 | validation en attente | 21.0s
+update   40 | steps   81,920/500,000 | retour train=-5.80 | tirs train=76.27 | policy=-0.0348 value=0.0518 entropy=2.274 KL=0.0081 EV=0.959 | train-eval=72.06; val shots=72.90 ±9.19 (IC95 71.63, 74.17); random=95.76, heuristic=63.92 | 191.0s
+update   41 | steps   83,968/500,000 | retour train=-5.86 | tirs train=76.33 | policy=-0.0395 value=0.0400 entropy=2.310 KL=0.0121 EV=0.964 | validation en attente | 20.4s
+update   42 | steps   86,016/500,000 | retour train=-5.81 | tirs train=76.17 | policy=-0.0496 value=0.0558 entropy=2.269 KL=0.0126 EV=0.950 | validation en attente | 21.3s
+update   43 | steps   88,064/500,000 | retour train=-5.83 | tirs train=76.15 | policy=-0.0447 value=0.0546 entropy=2.287 KL=0.0132 EV=0.953 | validation en attente | 21.1s
+update   44 | steps   90,112/500,000 | retour train=-5.75 | tirs train=75.57 | policy=-0.0541 value=0.0524 entropy=2.334 KL=0.0123 EV=0.953 | validation en attente | 21.2s
+update   45 | steps   92,160/500,000 | retour train=-5.78 | tirs train=75.68 | policy=-0.0576 value=0.0421 entropy=2.349 KL=0.0135 EV=0.962 | train-eval=72.25; val shots=72.58 ±8.81 (IC95 71.35, 73.80); random=95.76, heuristic=63.92 | 189.7s
+update   46 | steps   94,208/500,000 | retour train=-5.74 | tirs train=75.30 | policy=-0.0547 value=0.0381 entropy=2.364 KL=0.0132 EV=0.966 | validation en attente | 21.3s
+update   47 | steps   96,256/500,000 | retour train=-5.74 | tirs train=75.49 | policy=-0.0356 value=0.0538 entropy=2.417 KL=0.0130 EV=0.954 | validation en attente | 21.1s
+update   48 | steps   98,304/500,000 | retour train=-5.82 | tirs train=76.30 | policy=-0.0226 value=0.0519 entropy=2.422 KL=0.0085 EV=0.958 | validation en attente | 20.3s
+update   49 | steps  100,352/500,000 | retour train=-5.85 | tirs train=76.32 | policy=-0.0398 value=0.0570 entropy=2.423 KL=0.0100 EV=0.953 | validation en attente | 20.6s
+update   50 | steps  102,400/500,000 | retour train=-5.96 | tirs train=77.09 | policy=-0.0585 value=0.0355 entropy=2.387 KL=0.0158 EV=0.969 | train-eval=72.50; val shots=73.14 ±8.72 (IC95 71.93, 74.35); random=95.76, heuristic=63.92 | 190.8s
+update   51 | steps  104,448/500,000 | retour train=-5.85 | tirs train=76.12 | policy=-0.0327 value=0.0497 entropy=2.414 KL=0.0116 EV=0.960 | validation en attente | 20.7s
+update   52 | steps  106,496/500,000 | retour train=-5.81 | tirs train=75.67 | policy=-0.0463 value=0.0424 entropy=2.436 KL=0.0130 EV=0.963 | validation en attente | 21.5s
+update   53 | steps  108,544/500,000 | retour train=-5.87 | tirs train=76.14 | policy=-0.0526 value=0.0470 entropy=2.431 KL=0.0110 EV=0.958 | validation en attente | 21.7s
+update   54 | steps  110,592/500,000 | retour train=-5.86 | tirs train=76.27 | policy=-0.0305 value=0.0544 entropy=2.455 KL=0.0100 EV=0.955 | validation en attente | 20.4s
+update   55 | steps  112,640/500,000 | retour train=-5.79 | tirs train=75.83 | policy=-0.0203 value=0.0505 entropy=2.415 KL=0.0108 EV=0.957 | train-eval=72.35; val shots=72.61 ±8.68 (IC95 71.41, 73.82); random=95.76, heuristic=63.92 | 190.0s
+update   56 | steps  114,688/500,000 | retour train=-5.73 | tirs train=75.61 | policy=-0.0424 value=0.0435 entropy=2.352 KL=0.0152 EV=0.959 | validation en attente | 20.9s
+update   57 | steps  116,736/500,000 | retour train=-5.80 | tirs train=76.09 | policy=-0.0403 value=0.0387 entropy=2.441 KL=0.0097 EV=0.966 | validation en attente | 20.6s
+update   58 | steps  118,784/500,000 | retour train=-5.71 | tirs train=75.15 | policy=-0.0475 value=0.0434 entropy=2.425 KL=0.0088 EV=0.960 | validation en attente | 21.1s
+update   59 | steps  120,832/500,000 | retour train=-5.84 | tirs train=76.32 | policy=-0.0566 value=0.0515 entropy=2.421 KL=0.0125 EV=0.950 | validation en attente | 21.3s
+update   60 | steps  122,880/500,000 | retour train=-5.85 | tirs train=76.58 | policy=-0.0345 value=0.0465 entropy=2.415 KL=0.0063 EV=0.960 | train-eval=72.29; val shots=72.97 ±8.70 (IC95 71.76, 74.17); random=95.76, heuristic=63.92 | 188.1s
+update   61 | steps  124,928/500,000 | retour train=-5.91 | tirs train=76.84 | policy=-0.0514 value=0.0395 entropy=2.390 KL=0.0123 EV=0.963 | validation en attente | 21.6s
+update   62 | steps  126,976/500,000 | retour train=-5.99 | tirs train=77.69 | policy=-0.0690 value=0.0421 entropy=2.389 KL=0.0165 EV=0.956 | validation en attente | 22.1s
+update   63 | steps  129,024/500,000 | retour train=-5.95 | tirs train=77.39 | policy=-0.0733 value=0.0316 entropy=2.432 KL=0.0151 EV=0.968 | validation en attente | 22.1s
+update   64 | steps  131,072/500,000 | retour train=-5.90 | tirs train=77.04 | policy=-0.0830 value=0.0257 entropy=2.457 KL=0.0163 EV=0.968 | validation en attente | 23.0s
+update   65 | steps  133,120/500,000 | retour train=-5.84 | tirs train=76.54 | policy=-0.0507 value=0.0383 entropy=2.431 KL=0.0143 EV=0.965 | train-eval=71.86; val shots=73.12 ±8.93 (IC95 71.88, 74.36); random=95.76, heuristic=63.92 | 187.0s
+update   66 | steps  135,168/500,000 | retour train=-5.87 | tirs train=76.62 | policy=-0.0399 value=0.0503 entropy=2.443 KL=0.0141 EV=0.954 | validation en attente | 20.6s
+update   67 | steps  137,216/500,000 | retour train=-5.87 | tirs train=76.61 | policy=-0.0431 value=0.0489 entropy=2.452 KL=0.0104 EV=0.959 | validation en attente | 20.3s
+update   68 | steps  139,264/500,000 | retour train=-5.87 | tirs train=76.52 | policy=-0.0407 value=0.0573 entropy=2.473 KL=0.0113 EV=0.949 | validation en attente | 20.7s
+update   69 | steps  141,312/500,000 | retour train=-5.93 | tirs train=77.01 | policy=-0.0498 value=0.0371 entropy=2.500 KL=0.0097 EV=0.967 | validation en attente | 20.9s
+✅ Nouveau meilleur checkpoint : models/ppo_shooter_best.keras
+update   70 | steps  143,360/500,000 | retour train=-5.88 | tirs train=76.53 | policy=-0.0408 value=0.0507 entropy=2.474 KL=0.0113 EV=0.959 | train-eval=71.26; val shots=71.85 ±8.81 (IC95 70.63, 73.07); random=95.76, heuristic=63.92 | 185.9s
+update   71 | steps  145,408/500,000 | retour train=-5.96 | tirs train=77.09 | policy=-0.0666 value=0.0347 entropy=2.470 KL=0.0199 EV=0.967 | validation en attente | 22.0s
+update   72 | steps  147,456/500,000 | retour train=-5.90 | tirs train=76.87 | policy=-0.0504 value=0.0429 entropy=2.486 KL=0.0125 EV=0.962 | validation en attente | 20.8s
+update   73 | steps  149,504/500,000 | retour train=-5.89 | tirs train=76.44 | policy=-0.0564 value=0.0368 entropy=2.438 KL=0.0153 EV=0.969 | validation en attente | 20.9s
+update   74 | steps  151,552/500,000 | retour train=-5.91 | tirs train=76.68 | policy=-0.0742 value=0.0288 entropy=2.509 KL=0.0136 EV=0.971 | validation en attente | 22.3s
+update   75 | steps  153,600/500,000 | retour train=-5.86 | tirs train=76.08 | policy=-0.0347 value=0.0485 entropy=2.510 KL=0.0125 EV=0.964 | train-eval=72.53; val shots=72.40 ±8.66 (IC95 71.20, 73.60); random=95.76, heuristic=63.92 | 185.6s
+update   76 | steps  155,648/500,000 | retour train=-5.92 | tirs train=77.03 | policy=-0.0456 value=0.0469 entropy=2.518 KL=0.0154 EV=0.960 | validation en attente | 21.0s
+update   77 | steps  157,696/500,000 | retour train=-5.82 | tirs train=76.26 | policy=-0.0446 value=0.0355 entropy=2.544 KL=0.0121 EV=0.970 | validation en attente | 21.1s
+update   78 | steps  159,744/500,000 | retour train=-5.87 | tirs train=76.65 | policy=-0.0393 value=0.0499 entropy=2.577 KL=0.0149 EV=0.955 | validation en attente | 20.7s
+update   79 | steps  161,792/500,000 | retour train=-5.81 | tirs train=76.14 | policy=-0.0411 value=0.0408 entropy=2.552 KL=0.0120 EV=0.965 | validation en attente | 20.5s
+update   80 | steps  163,840/500,000 | retour train=-5.75 | tirs train=75.30 | policy=-0.0383 value=0.0390 entropy=2.600 KL=0.0102 EV=0.968 | train-eval=72.63; val shots=72.82 ±9.31 (IC95 71.53, 74.11); random=95.76, heuristic=63.92 | 191.8s
+update   81 | steps  165,888/500,000 | retour train=-5.87 | tirs train=76.54 | policy=-0.0303 value=0.0461 entropy=2.567 KL=0.0140 EV=0.961 | validation en attente | 21.2s
+update   82 | steps  167,936/500,000 | retour train=-5.83 | tirs train=75.66 | policy=-0.0613 value=0.0393 entropy=2.635 KL=0.0145 EV=0.959 | validation en attente | 22.7s
+update   83 | steps  169,984/500,000 | retour train=-5.92 | tirs train=76.98 | policy=-0.0552 value=0.0398 entropy=2.631 KL=0.0129 EV=0.965 | validation en attente | 21.3s
+update   84 | steps  172,032/500,000 | retour train=-5.89 | tirs train=76.46 | policy=-0.0517 value=0.0499 entropy=2.631 KL=0.0103 EV=0.954 | validation en attente | 21.3s
+update   85 | steps  174,080/500,000 | retour train=-5.91 | tirs train=76.75 | policy=-0.0544 value=0.0342 entropy=2.633 KL=0.0149 EV=0.968 | train-eval=72.49; val shots=72.15 ±8.52 (IC95 70.97, 73.33); random=95.76, heuristic=63.92 | 191.9s
+update   86 | steps  176,128/500,000 | retour train=-5.90 | tirs train=76.67 | policy=-0.0578 value=0.0386 entropy=2.663 KL=0.0150 EV=0.962 | validation en attente | 22.0s
+update   87 | steps  178,176/500,000 | retour train=-5.82 | tirs train=76.17 | policy=-0.0437 value=0.0457 entropy=2.682 KL=0.0132 EV=0.957 | validation en attente | 21.3s
+update   88 | steps  180,224/500,000 | retour train=-5.89 | tirs train=76.97 | policy=-0.0562 value=0.0412 entropy=2.673 KL=0.0145 EV=0.961 | validation en attente | 21.6s
+update   89 | steps  182,272/500,000 | retour train=-6.01 | tirs train=78.01 | policy=-0.0269 value=0.0532 entropy=2.655 KL=0.0118 EV=0.960 | validation en attente | 20.3s
+update   90 | steps  184,320/500,000 | retour train=-6.02 | tirs train=77.89 | policy=-0.0308 value=0.0449 entropy=2.682 KL=0.0081 EV=0.960 | train-eval=72.19; val shots=72.22 ±9.24 (IC95 70.94, 73.50); random=95.76, heuristic=63.92 | 189.1s
+update   91 | steps  186,368/500,000 | retour train=-5.96 | tirs train=77.34 | policy=-0.0559 value=0.0437 entropy=2.604 KL=0.0131 EV=0.956 | validation en attente | 21.7s
+update   92 | steps  188,416/500,000 | retour train=-5.89 | tirs train=76.60 | policy=-0.0470 value=0.0446 entropy=2.637 KL=0.0115 EV=0.959 | validation en attente | 21.5s
+update   93 | steps  190,464/500,000 | retour train=-5.69 | tirs train=75.08 | policy=-0.0438 value=0.0359 entropy=2.652 KL=0.0119 EV=0.967 | validation en attente | 21.3s
+update   94 | steps  192,512/500,000 | retour train=-5.65 | tirs train=74.82 | policy=-0.0299 value=0.0531 entropy=2.647 KL=0.0069 EV=0.955 | validation en attente | 20.5s
+update   95 | steps  194,560/500,000 | retour train=-5.66 | tirs train=75.06 | policy=-0.0426 value=0.0474 entropy=2.649 KL=0.0098 EV=0.960 | train-eval=71.46; val shots=72.33 ±9.00 (IC95 71.08, 73.57); random=95.76, heuristic=63.92 | 190.2s
+update   96 | steps  196,608/500,000 | retour train=-5.75 | tirs train=75.73 | policy=-0.0568 value=0.0423 entropy=2.667 KL=0.0169 EV=0.962 | validation en attente | 21.7s
+update   97 | steps  198,656/500,000 | retour train=-5.80 | tirs train=76.02 | policy=-0.0404 value=0.0364 entropy=2.705 KL=0.0121 EV=0.969 | validation en attente | 21.2s
+update   98 | steps  200,704/500,000 | retour train=-5.85 | tirs train=76.20 | policy=-0.0327 value=0.0508 entropy=2.655 KL=0.0101 EV=0.961 | validation en attente | 20.6s
+update   99 | steps  202,752/500,000 | retour train=-5.84 | tirs train=76.32 | policy=-0.0257 value=0.0507 entropy=2.664 KL=0.0098 EV=0.962 | validation en attente | 20.6s
+update  100 | steps  204,800/500,000 | retour train=-5.89 | tirs train=76.49 | policy=-0.0635 value=0.0419 entropy=2.670 KL=0.0132 EV=0.959 | train-eval=71.10; val shots=73.07 ±8.93 (IC95 71.83, 74.31); random=95.76, heuristic=63.92 | 193.3s
+update  101 | steps  206,848/500,000 | retour train=-5.85 | tirs train=76.36 | policy=-0.0586 value=0.0361 entropy=2.691 KL=0.0127 EV=0.966 | validation en attente | 21.6s
+update  102 | steps  208,896/500,000 | retour train=-5.77 | tirs train=75.57 | policy=-0.0689 value=0.0467 entropy=2.689 KL=0.0143 EV=0.954 | validation en attente | 22.1s
+update  103 | steps  210,944/500,000 | retour train=-5.65 | tirs train=74.55 | policy=-0.0657 value=0.0379 entropy=2.706 KL=0.0114 EV=0.957 | validation en attente | 22.0s
+update  104 | steps  212,992/500,000 | retour train=-5.66 | tirs train=74.20 | policy=-0.0482 value=0.0410 entropy=2.766 KL=0.0160 EV=0.957 | validation en attente | 21.8s
+update  105 | steps  215,040/500,000 | retour train=-5.80 | tirs train=75.57 | policy=-0.0689 value=0.0397 entropy=2.788 KL=0.0129 EV=0.957 | train-eval=72.13; val shots=72.25 ±8.70 (IC95 71.04, 73.46); random=95.76, heuristic=63.92 | 188.6s
+update  106 | steps  217,088/500,000 | retour train=-5.83 | tirs train=76.07 | policy=-0.0630 value=0.0382 entropy=2.717 KL=0.0099 EV=0.957 | validation en attente | 22.4s
+update  107 | steps  219,136/500,000 | retour train=-5.86 | tirs train=76.66 | policy=-0.0937 value=0.0305 entropy=2.760 KL=0.0134 EV=0.957 | validation en attente | 25.2s
+update  108 | steps  221,184/500,000 | retour train=-5.83 | tirs train=76.70 | policy=-0.0440 value=0.0435 entropy=2.761 KL=0.0112 EV=0.963 | validation en attente | 21.4s
+update  109 | steps  223,232/500,000 | retour train=-5.97 | tirs train=77.84 | policy=-0.0492 value=0.0511 entropy=2.743 KL=0.0149 EV=0.949 | validation en attente | 21.4s
+update  110 | steps  225,280/500,000 | retour train=-6.06 | tirs train=78.59 | policy=-0.0523 value=0.0413 entropy=2.791 KL=0.0133 EV=0.951 | train-eval=71.53; val shots=72.17 ±9.00 (IC95 70.92, 73.42); random=95.76, heuristic=63.92 | 189.2s
+update  111 | steps  227,328/500,000 | retour train=-6.10 | tirs train=78.86 | policy=-0.0549 value=0.0400 entropy=2.761 KL=0.0099 EV=0.953 | validation en attente | 21.5s
+update  112 | steps  229,376/500,000 | retour train=-6.04 | tirs train=78.41 | policy=-0.0931 value=0.0295 entropy=2.785 KL=0.0104 EV=0.948 | validation en attente | 24.2s
+update  113 | steps  231,424/500,000 | retour train=-5.89 | tirs train=77.19 | policy=-0.0514 value=0.0341 entropy=2.848 KL=0.0161 EV=0.968 | validation en attente | 21.0s
+update  114 | steps  233,472/500,000 | retour train=-5.97 | tirs train=77.85 | policy=-0.0601 value=0.0335 entropy=2.814 KL=0.0120 EV=0.961 | validation en attente | 21.6s
+update  115 | steps  235,520/500,000 | retour train=-5.96 | tirs train=77.43 | policy=-0.0724 value=0.0230 entropy=2.803 KL=0.0125 EV=0.975 | train-eval=71.19; val shots=72.58 ±8.71 (IC95 71.37, 73.78); random=95.76, heuristic=63.92 | 191.6s
+update  116 | steps  237,568/500,000 | retour train=-6.06 | tirs train=77.93 | policy=-0.0404 value=0.0359 entropy=2.797 KL=0.0151 EV=0.968 | validation en attente | 21.0s
+update  117 | steps  239,616/500,000 | retour train=-6.08 | tirs train=77.99 | policy=-0.0600 value=0.0289 entropy=2.876 KL=0.0132 EV=0.970 | validation en attente | 21.4s
+update  118 | steps  241,664/500,000 | retour train=-6.00 | tirs train=77.35 | policy=-0.0416 value=0.0456 entropy=2.844 KL=0.0166 EV=0.956 | validation en attente | 20.9s
+update  119 | steps  243,712/500,000 | retour train=-6.06 | tirs train=78.42 | policy=-0.0497 value=0.0398 entropy=2.870 KL=0.0147 EV=0.962 | validation en attente | 21.5s
+update  120 | steps  245,760/500,000 | retour train=-5.88 | tirs train=76.98 | policy=-0.0369 value=0.0523 entropy=2.820 KL=0.0117 EV=0.950 | train-eval=71.86; val shots=72.79 ±8.86 (IC95 71.56, 74.02); random=95.76, heuristic=63.92 | 190.5s
+update  121 | steps  247,808/500,000 | retour train=-5.93 | tirs train=77.38 | policy=-0.0414 value=0.0454 entropy=2.863 KL=0.0087 EV=0.960 | validation en attente | 20.8s
+update  122 | steps  249,856/500,000 | retour train=-5.93 | tirs train=77.12 | policy=-0.0463 value=0.0637 entropy=2.865 KL=0.0131 EV=0.939 | validation en attente | 20.3s
+update  123 | steps  251,904/500,000 | retour train=-5.99 | tirs train=77.54 | policy=-0.0601 value=0.0415 entropy=2.839 KL=0.0114 EV=0.957 | validation en attente | 21.0s
+update  124 | steps  253,952/500,000 | retour train=-6.07 | tirs train=78.51 | policy=-0.0468 value=0.0458 entropy=2.834 KL=0.0128 EV=0.957 | validation en attente | 21.1s
+update  125 | steps  256,000/500,000 | retour train=-6.01 | tirs train=78.03 | policy=-0.0602 value=0.0430 entropy=2.887 KL=0.0128 EV=0.955 | train-eval=71.73; val shots=72.58 ±8.82 (IC95 71.36, 73.80); random=95.76, heuristic=63.92 | 189.3s
+update  126 | steps  258,048/500,000 | retour train=-5.96 | tirs train=77.26 | policy=-0.0547 value=0.0462 entropy=2.858 KL=0.0093 EV=0.956 | validation en attente | 21.2s
+update  127 | steps  260,096/500,000 | retour train=-5.99 | tirs train=77.80 | policy=-0.0225 value=0.0431 entropy=2.817 KL=0.0081 EV=0.966 | validation en attente | 20.2s
+update  128 | steps  262,144/500,000 | retour train=-6.00 | tirs train=77.57 | policy=-0.0649 value=0.0343 entropy=2.868 KL=0.0177 EV=0.966 | validation en attente | 21.7s
+update  129 | steps  264,192/500,000 | retour train=-6.00 | tirs train=77.84 | policy=-0.0321 value=0.0356 entropy=2.851 KL=0.0143 EV=0.968 | validation en attente | 20.5s
+update  130 | steps  266,240/500,000 | retour train=-6.00 | tirs train=77.58 | policy=-0.0478 value=0.0395 entropy=2.863 KL=0.0134 EV=0.963 | train-eval=72.51; val shots=72.50 ±8.92 (IC95 71.26, 73.73); random=95.76, heuristic=63.92 | 190.0s
+update  131 | steps  268,288/500,000 | retour train=-6.05 | tirs train=78.04 | policy=-0.0629 value=0.0399 entropy=2.885 KL=0.0130 EV=0.961 | validation en attente | 21.5s
+update  132 | steps  270,336/500,000 | retour train=-6.09 | tirs train=78.92 | policy=-0.0391 value=0.0521 entropy=2.809 KL=0.0151 EV=0.957 | validation en attente | 20.9s
+update  133 | steps  272,384/500,000 | retour train=-6.15 | tirs train=79.25 | policy=-0.0325 value=0.0383 entropy=2.878 KL=0.0124 EV=0.969 | validation en attente | 20.9s
+update  134 | steps  274,432/500,000 | retour train=-6.21 | tirs train=80.15 | policy=-0.0406 value=0.0474 entropy=2.892 KL=0.0109 EV=0.954 | validation en attente | 21.5s
+update  135 | steps  276,480/500,000 | retour train=-6.11 | tirs train=78.81 | policy=-0.0397 value=0.0350 entropy=2.833 KL=0.0105 EV=0.974 | train-eval=73.11; val shots=72.25 ±8.62 (IC95 71.06, 73.44); random=95.76, heuristic=63.92 | 189.0s
+update  136 | steps  278,528/500,000 | retour train=-5.90 | tirs train=77.20 | policy=-0.0812 value=0.0311 entropy=2.845 KL=0.0160 EV=0.961 | validation en attente | 22.6s
+update  137 | steps  280,576/500,000 | retour train=-5.81 | tirs train=76.62 | policy=-0.0332 value=0.0409 entropy=2.852 KL=0.0095 EV=0.964 | validation en attente | 20.2s
+update  138 | steps  282,624/500,000 | retour train=-5.79 | tirs train=76.18 | policy=-0.0597 value=0.0365 entropy=2.865 KL=0.0116 EV=0.960 | validation en attente | 21.7s
+update  139 | steps  284,672/500,000 | retour train=-5.84 | tirs train=76.78 | policy=-0.0600 value=0.0345 entropy=2.826 KL=0.0157 EV=0.967 | validation en attente | 22.1s
+update  140 | steps  286,720/500,000 | retour train=-5.90 | tirs train=77.25 | policy=-0.0574 value=0.0355 entropy=2.841 KL=0.0168 EV=0.964 | train-eval=72.76; val shots=72.24 ±8.34 (IC95 71.08, 73.40); random=95.76, heuristic=63.92 | 187.6s
+update  141 | steps  288,768/500,000 | retour train=-5.84 | tirs train=76.73 | policy=-0.0807 value=0.0344 entropy=2.800 KL=0.0144 EV=0.953 | validation en attente | 22.7s
+update  142 | steps  290,816/500,000 | retour train=-5.90 | tirs train=76.73 | policy=-0.0693 value=0.0248 entropy=2.868 KL=0.0147 EV=0.972 | validation en attente | 21.9s
+update  143 | steps  292,864/500,000 | retour train=-6.01 | tirs train=77.72 | policy=-0.0409 value=0.0372 entropy=2.896 KL=0.0134 EV=0.968 | validation en attente | 21.1s
+update  144 | steps  294,912/500,000 | retour train=-5.99 | tirs train=77.49 | policy=-0.0586 value=0.0477 entropy=2.831 KL=0.0162 EV=0.946 | validation en attente | 21.7s
+update  145 | steps  296,960/500,000 | retour train=-6.07 | tirs train=78.78 | policy=-0.0424 value=0.0331 entropy=2.822 KL=0.0082 EV=0.970 | train-eval=73.02; val shots=73.22 ±8.28 (IC95 72.08, 74.37); random=95.76, heuristic=63.92 | 191.2s
+update  146 | steps  299,008/500,000 | retour train=-6.03 | tirs train=78.11 | policy=-0.0386 value=0.0373 entropy=2.907 KL=0.0100 EV=0.968 | validation en attente | 20.7s
+update  147 | steps  301,056/500,000 | retour train=-6.02 | tirs train=78.05 | policy=-0.0481 value=0.0359 entropy=2.817 KL=0.0146 EV=0.967 | validation en attente | 20.9s
+update  148 | steps  303,104/500,000 | retour train=-6.06 | tirs train=78.55 | policy=-0.0575 value=0.0304 entropy=2.794 KL=0.0080 EV=0.971 | validation en attente | 21.6s
+update  149 | steps  305,152/500,000 | retour train=-5.95 | tirs train=78.07 | policy=-0.0531 value=0.0405 entropy=2.790 KL=0.0122 EV=0.960 | validation en attente | 21.5s
+update  150 | steps  307,200/500,000 | retour train=-5.99 | tirs train=78.44 | policy=-0.0745 value=0.0316 entropy=2.843 KL=0.0120 EV=0.962 | train-eval=74.00; val shots=73.48 ±8.64 (IC95 72.29, 74.68); random=95.76, heuristic=63.92 | 194.2s
+update  151 | steps  309,248/500,000 | retour train=-5.97 | tirs train=77.97 | policy=-0.0621 value=0.0337 entropy=2.845 KL=0.0186 EV=0.965 | validation en attente | 21.4s
+update  152 | steps  311,296/500,000 | retour train=-5.97 | tirs train=77.41 | policy=-0.0474 value=0.0396 entropy=2.824 KL=0.0161 EV=0.965 | validation en attente | 21.0s
+update  153 | steps  313,344/500,000 | retour train=-5.92 | tirs train=76.95 | policy=-0.0229 value=0.0368 entropy=2.821 KL=0.0113 EV=0.970 | validation en attente | 20.2s
+update  154 | steps  315,392/500,000 | retour train=-5.93 | tirs train=76.99 | policy=-0.0426 value=0.0466 entropy=2.794 KL=0.0105 EV=0.960 | validation en attente | 20.3s
+update  155 | steps  317,440/500,000 | retour train=-5.94 | tirs train=77.07 | policy=-0.0421 value=0.0552 entropy=2.796 KL=0.0098 EV=0.948 | train-eval=73.76; val shots=73.00 ±8.85 (IC95 71.78, 74.23); random=95.76, heuristic=63.92 | 189.2s
+update  156 | steps  319,488/500,000 | retour train=-5.93 | tirs train=76.94 | policy=-0.0734 value=0.0327 entropy=2.809 KL=0.0140 EV=0.962 | validation en attente | 21.6s
+update  157 | steps  321,536/500,000 | retour train=-5.99 | tirs train=77.73 | policy=-0.0526 value=0.0386 entropy=2.795 KL=0.0109 EV=0.964 | validation en attente | 20.7s
+update  158 | steps  323,584/500,000 | retour train=-6.03 | tirs train=78.16 | policy=-0.0298 value=0.0488 entropy=2.862 KL=0.0116 EV=0.963 | validation en attente | 20.0s
+update  159 | steps  325,632/500,000 | retour train=-6.07 | tirs train=78.45 | policy=-0.0489 value=0.0390 entropy=2.781 KL=0.0158 EV=0.964 | validation en attente | 20.6s
+update  160 | steps  327,680/500,000 | retour train=-6.15 | tirs train=78.78 | policy=-0.0605 value=0.0338 entropy=2.842 KL=0.0169 EV=0.966 | train-eval=74.26; val shots=72.39 ±8.50 (IC95 71.22, 73.57); random=95.76, heuristic=63.92 | 191.4s
+update  161 | steps  329,728/500,000 | retour train=-5.94 | tirs train=77.01 | policy=-0.0715 value=0.0373 entropy=2.825 KL=0.0109 EV=0.960 | validation en attente | 22.7s
+update  162 | steps  331,776/500,000 | retour train=-5.90 | tirs train=77.04 | policy=-0.0498 value=0.0311 entropy=2.881 KL=0.0173 EV=0.969 | validation en attente | 21.5s
+update  163 | steps  333,824/500,000 | retour train=-5.87 | tirs train=76.82 | policy=-0.0385 value=0.0361 entropy=2.848 KL=0.0144 EV=0.969 | validation en attente | 20.6s
+update  164 | steps  335,872/500,000 | retour train=-5.90 | tirs train=77.13 | policy=-0.0366 value=0.0442 entropy=2.880 KL=0.0109 EV=0.960 | validation en attente | 20.5s
+update  165 | steps  337,920/500,000 | retour train=-5.92 | tirs train=77.21 | policy=-0.0610 value=0.0302 entropy=2.883 KL=0.0105 EV=0.966 | train-eval=74.45; val shots=73.17 ±8.21 (IC95 72.03, 74.31); random=95.76, heuristic=63.92 | 191.1s
+update  166 | steps  339,968/500,000 | retour train=-5.82 | tirs train=76.73 | policy=-0.0521 value=0.0287 entropy=2.904 KL=0.0102 EV=0.974 | validation en attente | 20.6s
+update  167 | steps  342,016/500,000 | retour train=-5.87 | tirs train=77.41 | policy=-0.0349 value=0.0349 entropy=2.859 KL=0.0129 EV=0.972 | validation en attente | 20.7s
+update  168 | steps  344,064/500,000 | retour train=-6.03 | tirs train=78.49 | policy=-0.0462 value=0.0319 entropy=2.869 KL=0.0115 EV=0.974 | validation en attente | 20.9s
+update  169 | steps  346,112/500,000 | retour train=-6.04 | tirs train=78.43 | policy=-0.0538 value=0.0363 entropy=2.903 KL=0.0117 EV=0.966 | validation en attente | 21.1s
+update  170 | steps  348,160/500,000 | retour train=-6.14 | tirs train=78.99 | policy=-0.0480 value=0.0436 entropy=2.889 KL=0.0120 EV=0.962 | train-eval=75.12; val shots=72.92 ±8.40 (IC95 71.75, 74.08); random=95.76, heuristic=63.92 | 191.1s
+update  171 | steps  350,208/500,000 | retour train=-6.11 | tirs train=78.73 | policy=-0.0563 value=0.0350 entropy=2.859 KL=0.0180 EV=0.963 | validation en attente | 21.6s
+update  172 | steps  352,256/500,000 | retour train=-6.17 | tirs train=79.08 | policy=-0.0393 value=0.0419 entropy=2.887 KL=0.0113 EV=0.966 | validation en attente | 21.6s
+update  173 | steps  354,304/500,000 | retour train=-6.23 | tirs train=79.87 | policy=-0.0801 value=0.0333 entropy=2.899 KL=0.0150 EV=0.961 | validation en attente | 23.1s
+update  174 | steps  356,352/500,000 | retour train=-6.10 | tirs train=78.96 | policy=-0.0509 value=0.0385 entropy=2.939 KL=0.0099 EV=0.966 | validation en attente | 22.4s
+update  175 | steps  358,400/500,000 | retour train=-6.10 | tirs train=78.96 | policy=-0.0503 value=0.0307 entropy=2.902 KL=0.0160 EV=0.974 | train-eval=74.10; val shots=73.39 ±8.59 (IC95 72.20, 74.59); random=95.76, heuristic=63.92 | 191.3s
+update  176 | steps  360,448/500,000 | retour train=-6.01 | tirs train=78.36 | policy=-0.0590 value=0.0362 entropy=2.916 KL=0.0116 EV=0.964 | validation en attente | 21.3s
+update  177 | steps  362,496/500,000 | retour train=-6.02 | tirs train=78.40 | policy=-0.0618 value=0.0369 entropy=2.925 KL=0.0127 EV=0.959 | validation en attente | 21.3s
+update  178 | steps  364,544/500,000 | retour train=-6.06 | tirs train=79.30 | policy=-0.0373 value=0.0417 entropy=2.906 KL=0.0108 EV=0.965 | validation en attente | 20.4s
+update  179 | steps  366,592/500,000 | retour train=-6.08 | tirs train=79.20 | policy=-0.0328 value=0.0488 entropy=2.903 KL=0.0097 EV=0.958 | validation en attente | 20.6s
+update  180 | steps  368,640/500,000 | retour train=-6.11 | tirs train=79.23 | policy=-0.0392 value=0.0537 entropy=2.907 KL=0.0103 EV=0.952 | train-eval=75.33; val shots=73.77 ±8.19 (IC95 72.64, 74.90); random=95.76, heuristic=63.92 | 192.7s
+update  181 | steps  370,688/500,000 | retour train=-6.12 | tirs train=79.09 | policy=-0.0595 value=0.0375 entropy=2.897 KL=0.0169 EV=0.964 | validation en attente | 21.7s
+update  182 | steps  372,736/500,000 | retour train=-6.10 | tirs train=78.82 | policy=-0.0473 value=0.0385 entropy=2.895 KL=0.0069 EV=0.964 | validation en attente | 21.0s
+update  183 | steps  374,784/500,000 | retour train=-6.06 | tirs train=78.54 | policy=-0.0708 value=0.0309 entropy=2.914 KL=0.0112 EV=0.966 | validation en attente | 22.3s
+update  184 | steps  376,832/500,000 | retour train=-6.00 | tirs train=78.34 | policy=-0.0778 value=0.0248 entropy=2.934 KL=0.0158 EV=0.973 | validation en attente | 22.6s
+update  185 | steps  378,880/500,000 | retour train=-6.02 | tirs train=78.78 | policy=-0.0366 value=0.0354 entropy=2.915 KL=0.0111 EV=0.971 | train-eval=75.03; val shots=73.75 ±8.60 (IC95 72.55, 74.94); random=95.76, heuristic=63.92 | 194.5s
+update  186 | steps  380,928/500,000 | retour train=-6.18 | tirs train=80.15 | policy=-0.0460 value=0.0397 entropy=2.887 KL=0.0121 EV=0.967 | validation en attente | 21.4s
+update  187 | steps  382,976/500,000 | retour train=-6.20 | tirs train=80.32 | policy=-0.0782 value=0.0267 entropy=2.932 KL=0.0145 EV=0.971 | validation en attente | 22.8s
+update  188 | steps  385,024/500,000 | retour train=-6.20 | tirs train=80.31 | policy=-0.0693 value=0.0271 entropy=2.918 KL=0.0100 EV=0.971 | validation en attente | 22.2s
+update  189 | steps  387,072/500,000 | retour train=-6.12 | tirs train=79.38 | policy=-0.0607 value=0.0376 entropy=2.981 KL=0.0149 EV=0.962 | validation en attente | 21.9s
+update  190 | steps  389,120/500,000 | retour train=-6.10 | tirs train=78.82 | policy=-0.0469 value=0.0350 entropy=2.924 KL=0.0168 EV=0.969 | train-eval=74.81; val shots=74.00 ±8.97 (IC95 72.76, 75.25); random=95.76, heuristic=63.92 | 194.8s
+update  191 | steps  391,168/500,000 | retour train=-6.12 | tirs train=78.48 | policy=-0.0331 value=0.0536 entropy=2.957 KL=0.0144 EV=0.950 | validation en attente | 20.8s
+update  192 | steps  393,216/500,000 | retour train=-6.15 | tirs train=78.96 | policy=-0.0607 value=0.0371 entropy=2.927 KL=0.0155 EV=0.964 | validation en attente | 21.6s
+update  193 | steps  395,264/500,000 | retour train=-6.16 | tirs train=78.86 | policy=-0.0543 value=0.0322 entropy=2.896 KL=0.0131 EV=0.971 | validation en attente | 21.3s
+update  194 | steps  397,312/500,000 | retour train=-6.10 | tirs train=78.45 | policy=-0.0379 value=0.0405 entropy=2.934 KL=0.0148 EV=0.967 | validation en attente | 20.5s
+update  195 | steps  399,360/500,000 | retour train=-6.19 | tirs train=79.30 | policy=-0.0421 value=0.0390 entropy=2.927 KL=0.0147 EV=0.968 | train-eval=74.59; val shots=74.55 ±8.58 (IC95 73.36, 75.73); random=95.76, heuristic=63.92 | 195.3s
+update  196 | steps  401,408/500,000 | retour train=-6.21 | tirs train=79.88 | policy=-0.0231 value=0.0378 entropy=2.866 KL=0.0099 EV=0.972 | validation en attente | 20.7s
+update  197 | steps  403,456/500,000 | retour train=-6.18 | tirs train=79.76 | policy=-0.0603 value=0.0414 entropy=2.905 KL=0.0052 EV=0.959 | validation en attente | 21.8s
+update  198 | steps  405,504/500,000 | retour train=-6.14 | tirs train=79.39 | policy=-0.0488 value=0.0429 entropy=2.910 KL=0.0124 EV=0.966 | validation en attente | 21.4s
+update  199 | steps  407,552/500,000 | retour train=-6.17 | tirs train=79.47 | policy=-0.0547 value=0.0317 entropy=2.896 KL=0.0097 EV=0.974 | validation en attente | 21.5s
+update  200 | steps  409,600/500,000 | retour train=-6.05 | tirs train=78.34 | policy=-0.0708 value=0.0301 entropy=2.877 KL=0.0168 EV=0.969 | train-eval=74.19; val shots=73.53 ±8.89 (IC95 72.30, 74.77); random=95.76, heuristic=63.92 | 197.2s
+update  201 | steps  411,648/500,000 | retour train=-6.06 | tirs train=78.94 | policy=-0.0476 value=0.0406 entropy=2.941 KL=0.0107 EV=0.968 | validation en attente | 21.1s
+update  202 | steps  413,696/500,000 | retour train=-6.06 | tirs train=78.81 | policy=-0.0510 value=0.0431 entropy=2.902 KL=0.0114 EV=0.963 | validation en attente | 21.4s
+update  203 | steps  415,744/500,000 | retour train=-6.04 | tirs train=78.15 | policy=-0.0330 value=0.0370 entropy=2.951 KL=0.0093 EV=0.971 | validation en attente | 21.1s
+update  204 | steps  417,792/500,000 | retour train=-6.05 | tirs train=78.12 | policy=-0.0463 value=0.0449 entropy=2.891 KL=0.0153 EV=0.959 | validation en attente | 21.3s

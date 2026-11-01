@@ -1,0 +1,16 @@
+⚠️ Aucun GPU détecté ; entraînement sur CPU
+Récompenses PPO : {'miss': -0.1, 'hit': 0.0, 'sunk': 0.0, 'win': 0.0}
+♻️  Reprise depuis models/ppo_shooter_best.keras (poids + état de l'optimiseur)
+Point de départ validation : 76.64 tirs (random=95.75, heuristic=66.05)
+PPO démarré : 8,000 pas, rollout=2048, batch=256, epochs=10
+Validation fixe : 200 flottes ; logs : logs/ppo/20261030_151057
+PPO n'utilise pas les transitions historiques S3 : il collecte des trajectoires on-policy dans BattleshipEnv.
+update    1 | steps    2,048/8,000 | retour train=-6.40 | tirs train=81.00 | policy=-0.0256 value=0.0411 entropy=1.705 KL=0.0119 EV=0.972 | validation en attente | 21.4s
+update    2 | steps    4,096/8,000 | retour train=-6.13 | tirs train=78.67 | policy=-0.0356 value=0.0503 entropy=1.743 KL=0.0143 EV=0.964 | validation en attente | 21.2s
+update    3 | steps    6,144/8,000 | retour train=-6.08 | tirs train=78.96 | policy=-0.0208 value=0.0378 entropy=1.761 KL=0.0080 EV=0.973 | validation en attente | 21.0s
+✅ Nouveau meilleur checkpoint : models/ppo_shooter_best.keras
+update    4 | steps    8,000/8,000 | retour train=-6.06 | tirs train=79.02 | policy=-0.0429 value=0.0452 entropy=1.732 KL=0.0135 EV=0.969 | train-eval=76.82; val shots=76.41 ±8.96 (IC95 75.16, 77.65); random=95.75, heuristic=66.05 | 203.0s
+✅ Dernier modèle : models/ppo_shooter.keras
+✅ Meilleur modèle validation : models/ppo_shooter_best.keras
+📈 CSV : logs/ppo/20261030_151057/metrics.csv
+📊 TensorBoard : tensorboard --logdir logs/ppo
